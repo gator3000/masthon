@@ -21,7 +21,7 @@ class Client:
 
 
     def __repr__(self) -> str:
-        return f"Client(token='{self.token[:7] + "*"*(20-7) + self.token[20:]}')"
+        return f"Client(token='{self.token[:7] + '*'*(20-7) + self.token[20:]}')"
 
     def _step(self, i: int = None) -> Any:
         pass
