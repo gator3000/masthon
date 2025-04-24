@@ -47,8 +47,9 @@ class Client:
 
     @LOG(True, False)
     def stop(self):
-        """stop the loop"""
+        """stop the main mainloop"""
         self.RUNNING = False
+    stop.__doc__ = """stop the main mainloop"""
 
     @TRY
     def _step(self, i: int = None) -> None:
@@ -130,7 +131,7 @@ class Client:
         """display help message"""
         if command is None:
             print(
-f"""
+"""
 \033[1mHELP\033[0m:
 Commands follow this simple syntax:
     \033[2mcmd arg1_as_str arg2_as_str\033[0m
@@ -146,8 +147,7 @@ c.run()
 ```\033[0m
 
 \033[93mAll commands you can use here:
- - {"\n - ".join(self.commands.keys())}\033[0m
-"""
+ - """ + "\n - ".join(self.commands.keys()) + "\033[0m"
             )
         else:
             if self.commands.get(command) is None:
