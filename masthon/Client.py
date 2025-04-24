@@ -1,8 +1,12 @@
 from typing import Any, Dict, Callable
 
+from .Exceptions import *
+from .utils import TRY, LOG, get_user_input
+
 import re
 import requests
 import time
+
 
 
 TOKEN_FORMAT = re.compile(r"^[A-Za-z0-9\-_]{43}$")
@@ -33,19 +37,27 @@ class Client:
         self.server = server
 
         self.funcs = {}
+
+        self.commands = {"stop": self.stop, "help": self.CLI_help, "h": self.CLI_help}
+
         self.RUNNING = False
 
     def __repr__(self) -> str:
-        return f"Client(token='{self.token[:7] + '*'*(20-7) + self.token[20:]}')"
+        return "Client(token=f'{SECRET_TOKEN}')"
 
-    def stop(self) -> None:
+    @LOG(True, False)
+    def stop(self):
+        """stop the loop"""
         self.RUNNING = False
 
-    def _step(self, i: int = None) -> Any:
-        for loop_time, flist in self.funcs.items:
-            for last, func in flist:
+    @TRY
+    def _step(self, i: int = None) -> None:
+        for loop_time, flist in self.funcs.items():
+            for j, (last, func) in enumerate(flist):
                 if last - time.time() < -loop_time:
                     func(self)
+                    self.funcs[loop_time][j] = time.time(), func
+
 
     def run(self) -> None:
         if self.RUNNING:
@@ -53,10 +65,19 @@ class Client:
         i = 0
         self.RUNNING = True
         while self.RUNNING:
-            try:
-                self._step(i)
-            except BaseException as e:
-                print(e)
+            u_input = get_user_input()
+            if u_input:
+                try:
+                    cmd, *cmdargs = u_input.split(" ")
+                    if cmd not in self.commands:
+                        raise CommandNotFound(f"Command `{cmd}` not found. Type help to see commands that you can use `help` or `h`.")
+                    try:
+                        self.commands[cmd](*cmdargs)
+                    except Exception:
+                        raise CommandExecutionError(f"An exception as occured while executing the command named {cmd}.")
+                except CLIException as e:
+                    print(f"\033[91m\033[1m{e.__class__.__name__}: \033[0m\033[91m{repr(e)}\033[0m")
+            self._step(i)
             i += 1
 
     def _run(self):
@@ -65,21 +86,17 @@ class Client:
         i = 0
         self.RUNNING = True
         while self.RUNNING:
-            try:
-                yield i, self._step(i)
-            except BaseException as e:
-                print(e)
-                yield None
+            yield i, self._step(i)
             i += 1
 
     def __iter__(self):
         for i, return_ in self._run():
             yield i, return_
 
+    @LOG(True, False)
     def _raw_request_post(
         self, path: str, /, annonymous: bool = False, **kwargs: Dict[str, str]
     ) -> requests.Response:
-        print("request")
         url = self.server + path
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
         response = requests.post(url, data=kwargs, headers=auth)
@@ -92,10 +109,47 @@ class Client:
     def post_status(self, text="Hello World from Mastodon API !") -> requests.Response:
         return self._raw_request_post("/api/v1/statuses", status=text)
 
-    def looped_every(self, func: Callable, time: float = 60) -> Callable:
-        if self.funcs.get(time) is None:
-            self.funcs[time] = list()
+    def looped_every(self, time: float = 60) -> Callable:
+        def _decorator(func: Callable) -> Callable:
+            if self.funcs.get(time) is None:
+                self.funcs[time] = list()
 
-        self.funcs[time].append((0, func))  # (last time executed, function)
+            self.funcs[time].append((0, func))  # (last time executed, function)
 
-        return func
+            return func
+        return _decorator
+    
+    def add_command(self, name: str) -> Callable:
+        def _decorator(func: Callable) -> Callable:
+            self.commands["name"] = func
+
+            return func
+        return _decorator
+
+    def CLI_help(self, command: str = None) -> None:
+        """display help message"""
+        if command is None:
+            print(
+f"""
+\033[1mHELP\033[0m:
+Commands follow this simple syntax:
+    \033[2mcmd arg1_as_str arg2_as_str\033[0m
+
+You can add a command with this code:
+\033[2m```py
+c = Client(token="")
+@c.add_command(name="foo")
+def foo_command(client: Client, arg1: str, arg2: str = None):
+    print("hello world")
+
+c.run()
+```\033[0m
+
+\033[93mAll commands you can use here:
+ - {"\n - ".join(self.commands.keys())}\033[0m
+"""
+            )
+        else:
+            if self.commands.get(command) is None:
+                raise CommandNotFound()
+            print(f"\033[1m{command} - \033[0m{self.commands[command].__doc__}")
