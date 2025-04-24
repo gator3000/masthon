@@ -38,7 +38,8 @@ class Client:
 
         self.funcs = {}
 
-        self.commands = {"stop": self.stop, "help": self.CLI_help, "h": self.CLI_help}
+        self.commands = {"stop": Client.stop, "help": Client.CLI_help, "h": Client.CLI_help, "last": Client.cli_last}
+        self.cli_last_error = None
 
         self.RUNNING = False
 
@@ -73,8 +74,10 @@ class Client:
                     if cmd not in self.commands:
                         raise CommandNotFound(f"Command `{cmd}` not found. Type help to see commands that you can use `help` or `h`.")
                     try:
-                        self.commands[cmd](*cmdargs)
-                    except Exception:
+                        self.commands[cmd](self, *cmdargs)
+                    except Exception as e:
+                        self.cli_last_error = e
+                        print(e)
                         raise CommandExecutionError(f"An exception as occured while executing the command named {cmd}.")
                 except CLIException as e:
                     print(f"\033[91m\033[1m{e.__class__.__name__}: \033[0m\033[91m{repr(e)}\033[0m")
@@ -122,7 +125,7 @@ class Client:
     
     def add_command(self, name: str) -> Callable:
         def _decorator(func: Callable) -> Callable:
-            self.commands["name"] = func
+            self.commands[name] = func
 
             return func
         return _decorator
@@ -153,3 +156,6 @@ c.run()
             if self.commands.get(command) is None:
                 raise CommandNotFound()
             print(f"\033[1m{command} - \033[0m{self.commands[command].__doc__}")
+    
+    def cli_last(self):
+        print(self.cli_last_error)
