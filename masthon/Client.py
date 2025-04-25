@@ -2,10 +2,12 @@ from typing import Any, Dict, Callable
 
 from .Exceptions import *
 from .utils import TRY, LOG, get_user_input
+from .Attachment import Attachement
 
 import re
-import requests
 import time
+
+import requests, json
 
 
 
@@ -46,7 +48,6 @@ class Client:
     def __repr__(self) -> str:
         return "Client(token=f'{SECRET_TOKEN}')"
 
-    @LOG(True, False)
     def stop(self):
         """stop the main mainloop"""
         self.RUNNING = False
@@ -97,7 +98,7 @@ class Client:
         for i, return_ in self._run():
             yield i, return_
 
-    @LOG(True, False)
+    @LOG(True, True)
     def _raw_request_post(
         self, path: str, /, annonymous: bool = False, **kwargs: Dict[str, str]
     ) -> requests.Response:
@@ -109,6 +110,16 @@ class Client:
             self.stop()
 
         return response
+    
+    @LOG(True, True)
+    def upload_media(self, src: str) -> str:
+        with open(src, "r") as f:
+            response = self._raw_request_post("/api/v1/media", file=f.read())
+        attachement = Attachement(**json.loads(response.content.decode()))
+        assert attachement.type is not "unknown", IOError
+        return attachement
+
+
 
     def post_status(self, text="Hello World from Mastodon API !") -> requests.Response:
         return self._raw_request_post("/api/v1/statuses", status=text)
