@@ -119,27 +119,48 @@ class Client:
     # //         yield i, return_
 
     @LOG(True, True)
-    def _raw_request_post(
+    def _raw_request(
         self,
         path: str,
         /,
+        method: Literal["get", "post", "delete", Union["put", "patch"]],
         annonymous: bool = False,
         files: Optional[Dict[str, Tuple[str, IO, str]]] = None,
-        additional_data: Optional[Dict[str, str]] = {},
+        additional_data: Optional[Dict[str, str]] = dict(),
         **kwargs: Optional[Dict[str, str]],
     ) -> requests.Response:
         url = self.server + path
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
-        response = requests.post(url, data=kwargs, headers=auth, files=files)
+        kwargs.update(additional_data)
+
+        match method.lower():
+            case "get":
+                response = requests.get(url, data=kwargs, headers=auth, files=files)
+            case "post":
+                response = requests.post(url, data=kwargs, headers=auth, files=files)
+            case "delete":
+                response = requests.delete(url, data=kwargs, headers=auth, files=files)
+            case "put":
+                response = requests.put(url, data=kwargs, headers=auth, files=files)
+            case "patch":
+                response = requests.patch(url, data=kwargs, headers=auth, files=files)
+            case _:
+                raise HTTPError(f"Method `{method}` not known")
 
         if response.status_code == 429:
             self.stop()
 
         match response.status_code // 100:
             case 4:
-                raise HTTPRequestError400
+                if response.status_code == 401:
+                    raise HTTP401Error("401 Unauthorized: Your acces token is invalid")
+                raise HTTPRequestError400(
+                    f"The request is invalid : HTTP Error {response.status_code}"
+                )
             case 5:
-                raise HTTPServerError500
+                raise HTTPServerError500(
+                    f"An error as occured from the server `{self.server}` : HTTP Error {response.status_code}"
+                )
             case _:
                 pass
 
@@ -150,26 +171,44 @@ class Client:
         self,
         text: str = "Hello World from Mastodon API !",
         medias: Optional[List[str]] = [],
-        visibility: Optional[Literal["public", "unlisted", "private", "direct"]] = "public",
+        visibility: Optional[
+            Literal["public", "unlisted", "private", "direct"]
+        ] = "public",
+        in_reply_to_id: Optional[str] = None,
+        sensitive: Optional[Literal[None, True]] = None,
+        language: Optional[str] = "en",
     ) -> Status:
         ids = list()
         for media_src in medias:
             ids.append(str(self.upload_media(media_src).id))
-        print(ids)
-        response = self._raw_request_post(
+        response = self._raw_request(
             "/api/v1/statuses",
+            method="post",
             status=text,
             visibility=visibility,
             additional_data={"media_ids[]": ids},
+            in_reply_to_id=in_reply_to_id,
+            sensitive=sensitive,
+            language=language,
         )
         return Status(**json.loads(response.text))
 
     @LOG()
-    def upload_media(self, src: str) -> MediaAttachment:
+    def upload_media(
+        self, src: str, /, type_: Optional[str] = "image/{ext}"
+    ) -> MediaAttachment:
         with open(src, "rb") as f:
-            files = {"file": (src.split("/")[-1], f, f"image/{src.split('.')[-1]}")}
-            response = self._raw_request_post(
+            files = {
+                "file": (
+                    src.split("/")[-1],
+                    f,
+                    type_.format(ext=src.split('.')[-1])
+                )
+            }
+
+            response = self._raw_request(
                 "/api/v1/media",
+                method="post",
                 files=files,
                 data={
                     "description": "Media uploaded with Masthon. @gator3000@mastodon.social for more infos"
@@ -180,6 +219,18 @@ class Client:
         assert attachement.type != "unknown", UnexpectedServerResult()
         return attachement
 
+    @LOG()
+    def delete_status(self, status: Union[Status, str], **kwargs) -> requests.Response:
+        if isinstance(status, Status):
+            id_ = status.id
+        else:
+            id_ = status
+        response = self._raw_request(
+            f"/api/v1/statuses/{id_}", method="delete", **kwargs
+        )
+        return response
+
+    # Decorators !
     def looped_every(self, time: float = 60) -> Callable:
         def _decorator(func: Callable) -> Callable:
             if self.funcs.get(time) is None:
@@ -207,6 +258,7 @@ class Client:
 
         return _decorator
 
+    # Commands
     def CLI_help(self, command: str = None) -> None:
         """display help message"""
         if command is None:

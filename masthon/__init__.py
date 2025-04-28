@@ -1,6 +1,7 @@
 from .Client import Client
 from .Exceptions import *
 from .utils import *
+from .DataClasses import *
 
 DEFAULT_MESSAGE = """Hello from the #API at time : `{}`.
 The project used is **#Masthon** a simple #python package whitch links to #Mastodon coded by an #french student !

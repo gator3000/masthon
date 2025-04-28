@@ -8,12 +8,16 @@ from .Exceptions import DataClassException
 
 class DataClass:
     def __repr__(self) -> str:
-        return f"""{self.__class__.__name__}({(", ".join(
+        args = ", ".join(
             [
                 repr(attr) + "=" + repr(self.__getattribute__(attr))
                 for attr in self.__slots__
             ]
-        ))})"""
+        )
+        if len(args) > 76:
+            return f"""{self.__class__.__name__}({args[:40] + " ... " + args[-10:]})"""
+        else:
+            return f"""{self.__class__.__name__}({args})"""
 
     # TODO: Complete that
     #! Not working yet
