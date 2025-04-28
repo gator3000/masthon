@@ -16,7 +16,6 @@ keywords = ["mastodon", "api", "masthon"]
 dependencies = [
     "requests",
     "typing",
-    "time",
     "json",
     "traceback"
 ]
