@@ -18,5 +18,5 @@ setup(
     },
     package_dir = {"": "masthon"},
     packages = find_packages(where="masthon"),
-    python_requires = ">=3.10"
+    python_requires = ">=3"
 )
