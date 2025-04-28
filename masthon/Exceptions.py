@@ -1,3 +1,8 @@
+"""
+Just a submodule for all exceptions you can raise and catch specific errors related to Masthon.
+"""
+
+
 # All custom exceptions are childrens of this class
 class MasthonException(BaseException): ...
 

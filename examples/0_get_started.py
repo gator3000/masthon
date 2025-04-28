@@ -1,3 +1,7 @@
+"""
+First example !
+"""
+
 from typing import Tuple
 
 from masthon import Client, DEFAULT_MESSAGE

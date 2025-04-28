@@ -1,3 +1,8 @@
+"""
+A classes representing API objects are here !
+"""
+
+
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
@@ -7,10 +12,12 @@ from .Exceptions import DataClassException
 
 
 class DataClass:
+    """:)"""
+    
     def __repr__(self) -> str:
         args = ", ".join(
             [
-                repr(attr) + "=" + repr(self.__getattribute__(attr))
+                str(attr) + "=" + repr(self.__getattribute__(attr))
                 for attr in self.__slots__
             ]
         )
@@ -34,7 +41,7 @@ class DataClass:
                     if isinstance(v, ann[k]):
                         setattr(self, k, v)
                 except TypeError as e:
-                    if e.args.startswith("Subscripted "): # typing
+                    if e.args.startswith("Subscripted "):  # typing
                         pass
                     else:
                         raise e
@@ -110,7 +117,6 @@ class Meta(DataClass):
             self.small = ImageMetaInfos(**small)
 
 
-
 class Source(DataClass):
     __slots__ = (
         "privacy",
@@ -155,6 +161,8 @@ class Role(DataClass):
 
 
 class Account(DataClass): ...  # ? -> Prevent from undefined error
+
+
 class Account(DataClass):
     __slots__ = (
         "id",
@@ -526,6 +534,7 @@ class Status(DataClass):
         bookmarked: Optional[bool] = None,
         pinned: Optional[bool] = None,
         filtered: Optional[List[Dict[str, Any]]] = None,
+        quote: Optional[Any] = None,
     ):
         self.id = id
         self.uri = uri
@@ -542,7 +551,9 @@ class Status(DataClass):
         self.visibility = visibility
         self.sensitive = sensitive
         self.spoiler_text = spoiler_text
-        if len(media_attachments) < 1 or isinstance(media_attachments[0], MediaAttachment):
+        if len(media_attachments) < 1 or isinstance(
+            media_attachments[0], MediaAttachment
+        ):
             self.media_attachments = media_attachments
         else:
             self.media_attachments = [
@@ -592,3 +603,4 @@ class Status(DataClass):
         self.bookmarked = bookmarked
         self.pinned = pinned
         self.filtered = filtered
+        self.quote = quote

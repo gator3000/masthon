@@ -1,13 +1,18 @@
+"""
+The client !
+"""
+
 from typing import Any, Dict, Callable, IO, Tuple, Optional, Literal
 
 from .Exceptions import *
-from .utils import TRY, LOG, get_user_input
+from .utils import DEBUG, TRY, LOG, get_user_input
 from .DataClasses import *
 
 import re
 import time
 
 import requests, json
+import traceback
 
 
 TOKEN_FORMAT = re.compile(r"^[A-Za-z0-9\-_]{43}$")
@@ -15,7 +20,18 @@ SERVER_FORMAT = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]
 
 
 class Client:
-    def __init__(self, /, token: str, server: str = "https://mastodon.social") -> None:
+    """
+    A class representing your application.
+    """
+
+    def __init__(self, /, token: str, server: Optional[str] = "https://mastodon.social") -> None:
+        """The representation of your aplication.
+
+        Args:
+            token (str): The token to auth requests to the API.
+            server (str, optional): The url to the instance where your account is registered. Defaults to "https://mastodon.social".
+        """
+
         if not isinstance(token, str):
             raise TypeError(f"Token type `{type(token)}` not supported must be a str.")
         token = token.strip()
@@ -44,10 +60,10 @@ class Client:
         self.commands = {
             "stop": Client.stop,
             "help": Client.CLI_help,
-            "h": Client.CLI_help,
+            "h": Client.CLI_short_help,
             "last": Client.cli_last,
         }
-        self.cli_last_error = None
+        self.cli_last_error: Optional[Exception] = None
 
         self.RUNNING = False
 
@@ -58,9 +74,8 @@ class Client:
         """stop the main mainloop"""
         self.RUNNING = False
 
-    stop.__doc__ = """stop the main mainloop"""
+    stop.__doc__ = """stop the main mainloop""" #? I dont know why if I dont put this line stop.__doc__  is None
 
-    @TRY
     def _step(self, i: int = None) -> None:
         for func, time_after in self.scheduled.items():
             if time.time() - self.epoch >= time_after:
@@ -73,6 +88,14 @@ class Client:
                     self.funcs[loop_time][j] = time.time(), func
 
     def run(self) -> None:
+        """Run the mainloop.
+
+        Raises:
+            RuntimeError: If you try to run an instance into.
+            CommandNotFound: ...
+            e.args: Errors that they are raised by your commands.
+            CommandExecutionError: Not really raised.
+        """
         if self.RUNNING:
             raise RuntimeError("You can't run two instances at the same time.")
         i = 0
@@ -118,17 +141,33 @@ class Client:
     # //     for i, return_ in self._run():
     # //         yield i, return_
 
-    @LOG(True, True)
+    @TRY(HTTPError)
+    @LOG(True, True, args_max_lenght=64)
     def _raw_request(
         self,
         path: str,
         /,
         method: Literal["get", "post", "delete", Union["put", "patch"]],
-        annonymous: bool = False,
+        annonymous: Optional[bool] = False,
         files: Optional[Dict[str, Tuple[str, IO, str]]] = None,
         additional_data: Optional[Dict[str, str]] = dict(),
         **kwargs: Optional[Dict[str, str]],
     ) -> requests.Response:
+        """Make a request to the API.
+
+        Args:
+            path (str): The API path.
+            method (some http method): The http method used
+            annonymous (bool, optional): If True, token is omitten. Defaults to False.
+            files (str, optional): Files to post. Defaults to None.
+            additional_data (dict, optional): Data to add that you can put as a kwarg (like `"media_ids[]"`). Defaults to dict().
+
+        Raises:
+            HTTPError: If status_code not 2xx or 3xx.
+
+        Returns:
+            requests.Response: The response from the API.
+        """
         url = self.server + path
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
         kwargs.update(additional_data)
@@ -149,6 +188,7 @@ class Client:
 
         if response.status_code == 429:
             self.stop()
+            raise HTTP401Error("429 Too many requests: Slow down !")
 
         match response.status_code // 100:
             case 4:
@@ -178,6 +218,19 @@ class Client:
         sensitive: Optional[Literal[None, True]] = None,
         language: Optional[str] = "en",
     ) -> Status:
+        """Post a status.
+
+        Args:
+            text (str, optional): The message to send. Defaults to "Hello World from Mastodon API !".
+            medias (List[str], optional): A list of media's ids to link with the status. Defaults to [].
+            visibility (str, optional): ... Defaults to "public".
+            in_reply_to_id (str, optional): If post reply to another, put his id here. Defaults to None.
+            sensitive (NoneType | True, optional): True to make; None to dont. False is making the post sensitive. Defaults to None.
+            language (str, optional): ISO 639 language code for this status. Defaults to "en".
+
+        Returns:
+            Status: This status as an object.
+        """
         ids = list()
         for media_src in medias:
             ids.append(str(self.upload_media(media_src).id))
@@ -197,13 +250,18 @@ class Client:
     def upload_media(
         self, src: str, /, type_: Optional[str] = "image/{ext}"
     ) -> MediaAttachment:
+        """Upload a media (syncronously) with /api/v1
+
+        Args:
+            src (str): source of your media file
+            type_ (str, optional): Like `image/png` but you can formate this with {ext} = after the dot. Defaults to "image/{ext}".
+
+        Returns:
+            MediaAttachment: The media uploaded as an object.
+        """
         with open(src, "rb") as f:
             files = {
-                "file": (
-                    src.split("/")[-1],
-                    f,
-                    type_.format(ext=src.split('.')[-1])
-                )
+                "file": (src.split("/")[-1], f, type_.format(ext=src.split(".")[-1]))
             }
 
             response = self._raw_request(
@@ -221,6 +279,14 @@ class Client:
 
     @LOG()
     def delete_status(self, status: Union[Status, str], **kwargs) -> requests.Response:
+        """Delete given status
+
+        Args:
+            status (Union[Status, str]): ...
+
+        Returns:
+            requests.Response: The response returned by the API.
+        """
         if isinstance(status, Status):
             id_ = status.id
         else:
@@ -232,6 +298,14 @@ class Client:
 
     # Decorators !
     def looped_every(self, time: float = 60) -> Callable:
+        """Decorator for loop your own function into the mainloop.
+
+        Args:
+            time (float, optional): Every this time your func wil be called. Defaults to 60.
+
+        Returns:
+            Callable: ...
+        """
         def _decorator(func: Callable) -> Callable:
             if self.funcs.get(time) is None:
                 self.funcs[time] = list()
@@ -242,7 +316,15 @@ class Client:
 
         return _decorator
 
-    def schedule(self, after: float = 0) -> Callable:
+    def schedule(self, after: Optional[float] = 0) -> Callable:
+        """Shedule your func x time after it being runned.
+
+        Args:
+            after (float, optional): ... Defaults to 0.
+
+        Returns:
+            Callable: ...
+        """
         def _decorator(func: Callable) -> Callable:
             self.scheduled[func] = after
 
@@ -251,6 +333,14 @@ class Client:
         return _decorator
 
     def add_command(self, name: str) -> Callable:
+        """Add your own command to the cli system.
+
+        Args:
+            name (str): The name to call it.
+
+        Returns:
+            Callable: ...
+        """
         def _decorator(func: Callable) -> Callable:
             self.commands[name] = func
 
@@ -288,7 +378,21 @@ c.run()
                 raise CommandNotFound()
             print(f"\033[1m{command} - \033[0m{self.commands[command].__doc__}")
 
+    def CLI_short_help(self) -> None:
+        """display commands availables"""
+        print(
+            """
+\033[93mAll commands you can use here:
+ - """
+            + "\n - ".join(self.commands.keys())
+            + "\033[0m"
+        )
+        
+
     def cli_last(self):
-        print(self.cli_last_error.__class__.__name__, ":", self.cli_last_error)
-        if self.cli_last_error is not None:
-            raise RealException(self.cli_last_error)
+        """display or raise last error raised by a command"""
+        if isinstance(self.cli_last_error, Exception):
+            if DEBUG:
+                raise RealException(self.cli_last_error) from self.cli_last_error
+            else:
+                traceback.print_exception(self.cli_last_error)

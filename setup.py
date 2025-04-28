@@ -1,14 +1,22 @@
 from setuptools import find_packages, setup
 
-setup(
-    name="masthon",
-    description="A simple package to handle masthodon bots.",
-    packages=find_packages(),
-    include_package_data=True,
-    python_requires='>=3',
-    url="https://gitlab.com/Gator3000/masthon.git",
-    author="org.literie.gator",
-    license="GNU/GPL v3",
-    install_requires=[],
-    zip_safe=False
+with open("README.md") as f:
+    long_description = f.read()
+
+setuptools.setup(
+    name = "Masthon",
+    version = "v0.1a",
+    author = "org.literie.gator",
+    author_email = "aelian.brd@proton.me",
+    description = "A simple API for linking masthodon to your python codes.",
+    long_description = long_description,
+    long_description_content_type = "text/markdown",
+    url = "package URL",
+    project_urls = {
+        "Homepage": "https://gitlab.com/Gator3000/masthon",
+        "Bug Tracker": "https://gitlab.com/Gator3000/masthon/-/issues"
+    },
+    package_dir = {"": "masthon"},
+    packages = setuptools.find_packages(where="masthon"),
+    python_requires = ">=3.10"
 )
