@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 with open("README.md") as f:
     long_description = f.read()
 
-setuptools.setup(
+setup(
     name = "Masthon",
     version = "v0.1a",
     author = "org.literie.gator",
@@ -17,6 +17,6 @@ setuptools.setup(
         "Bug Tracker": "https://gitlab.com/Gator3000/masthon/-/issues"
     },
     package_dir = {"": "masthon"},
-    packages = setuptools.find_packages(where="masthon"),
+    packages = find_packages(where="masthon"),
     python_requires = ">=3.10"
 )
