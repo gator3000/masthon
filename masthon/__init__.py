@@ -2,13 +2,6 @@ from .Client import Client
 
 __version__ = "v0.1a"
 
-# TODO: Update this
-# __all__ = [
-#     "Client",
-#     "TRY",
-#     "LOG",
-#     "DEBUG"
-# ]
 
 DEFAULT_MESSAGE = """Hello from the #API at time : `{}`.
 The project used is **#Masthon** a simple #python package whitch links to #Mastodon coded by an #french student !
