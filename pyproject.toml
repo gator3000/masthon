@@ -1,5 +1,5 @@
 [build-system]
-requires      = ["setuptools"]
+requires = ["setuptools"]
 
 [project]
 name = "masthon"
@@ -10,19 +10,17 @@ authors = [{ name = "org.literie.gator", email = "aelian.brd@proton.me" }]
 license = { file = "LICENSE" }
 classifiers = [
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: 10"
+    "Programming Language :: Python :: 3"
 ]
 keywords = ["mastodon", "api", "masthon"]
 dependencies = [
     "requests",
     "typing",
-    "re",
     "time",
     "json",
     "traceback"
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 
 
 [project.urls]
