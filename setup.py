@@ -11,12 +11,12 @@ setup(
     description = "A simple API for linking masthodon to your python codes.",
     long_description = long_description,
     long_description_content_type = "text/markdown",
-    url = "package URL",
+    url = "https://gitlab.com/Gator3000/masthon",
     project_urls = {
         "Homepage": "https://gitlab.com/Gator3000/masthon",
         "Bug Tracker": "https://gitlab.com/Gator3000/masthon/-/issues"
     },
     package_dir = {"": "masthon"},
     packages = find_packages(where="masthon"),
-    python_requires = ">=3"
+    python_requires = ">=3.10"
 )
