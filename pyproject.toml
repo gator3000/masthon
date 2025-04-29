@@ -14,10 +14,7 @@ classifiers = [
 ]
 keywords = ["mastodon", "api", "masthon"]
 dependencies = [
-    "requests",
-    "typing",
-    "json",
-    "traceback"
+    "requests"
 ]
 requires-python = ">=3"
 
