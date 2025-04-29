@@ -15,5 +15,13 @@ setup(
     license='GNU/GPL v3',
     packages=['masthon'],
     zip_safe=False,
-    python_requires = ">=3.10"
+    python_requires = ">=3.10",
+    install_requires=[
+        "requests",
+    ],
+    project_urls = {
+        "Homepage": "https://gitlab.com/Gator3000/masthon",
+        "Bug Tracker": "https://gitlab.com/Gator3000/masthon/-/issues"
+    }
+
 )
