@@ -16,7 +16,7 @@ setup(
         "Homepage": "https://gitlab.com/Gator3000/masthon",
         "Bug Tracker": "https://gitlab.com/Gator3000/masthon/-/issues"
     },
-    package_dir = {"": "masthon"},
+    package_dir = ["masthon"],
     packages = find_packages(where="masthon"),
     python_requires = ">=3.10"
 )
