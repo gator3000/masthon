@@ -1,3 +1,4 @@
 __pycache__/
 test[0-9].*
 last_graph.*
+.obsidian/
