@@ -1,6 +1,6 @@
 from .Client import Client
 
-__version__ = "v0.1a"
+__version__ = "v0.1b"
 
 
 DEFAULT_MESSAGE = """Hello from the #API at time : `{}`.
