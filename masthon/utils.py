@@ -2,7 +2,7 @@
 Simple utils module.
 """
 
-from typing import Any, Callable, Type, Optional
+from typing import Any, Callable, Type
 
 import traceback
 import sys, select
@@ -10,7 +10,7 @@ import sys, select
 DEBUG = False  # If debug is true errors are raised. Else they will be ignored (just printed).
 
 
-def get_user_input() -> Optional[str]:
+def get_user_input():
     if select.select([sys.stdin], [], [], 0.0)[0]:
         return sys.stdin.readline().strip()
     return None
