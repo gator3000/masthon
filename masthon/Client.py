@@ -24,7 +24,9 @@ class Client:
     A class representing your application.
     """
 
-    def __init__(self, /, token: str, server: Optional[str] = "https://mastodon.social") -> None:
+    def __init__(
+        self, /, token: str, server: Optional[str] = "https://mastodon.social"
+    ) -> None:
         """The representation of your aplication.
 
         Args:
@@ -53,11 +55,11 @@ class Client:
                 raise ValueError("Server url doesn't match the format.")
         self.server = server
 
-        self.epoch = None
-        self.funcs: Dict[float, List(Tuple[float, Callable])] = {}
+        self.epoch: int = None
+        self.funcs: Dict[float, List[Tuple[float, Callable]]] = {}
         self.scheduled: Dict[Callable, float] = {}
 
-        self.commands = {
+        self.commands: Dict[str, Callable] = {
             "stop": Client.stop,
             "help": Client.CLI_help,
             "h": Client.CLI_short_help,
@@ -74,7 +76,7 @@ class Client:
         """stop the main mainloop"""
         self.RUNNING = False
 
-    stop.__doc__ = """stop the main mainloop""" #? I dont know why if I dont put this line stop.__doc__  is None
+    stop.__doc__ = """stop the main mainloop"""  # ? I dont know why if I dont put this line stop.__doc__  is None
 
     def _step(self, i: int = None) -> None:
         for func, time_after in self.scheduled.items():
@@ -297,7 +299,7 @@ class Client:
         return response
 
     # Decorators !
-    def looped_every(self, time: float = 60) -> Callable:
+    def looped_every(self, time: Optional[float] = 60) -> Callable:
         """Decorator for loop your own function into the mainloop.
 
         Args:
@@ -306,6 +308,7 @@ class Client:
         Returns:
             Callable: ...
         """
+
         def _decorator(func: Callable) -> Callable:
             if self.funcs.get(time) is None:
                 self.funcs[time] = list()
@@ -325,6 +328,7 @@ class Client:
         Returns:
             Callable: ...
         """
+
         def _decorator(func: Callable) -> Callable:
             self.scheduled[func] = after
 
@@ -341,6 +345,7 @@ class Client:
         Returns:
             Callable: ...
         """
+
         def _decorator(func: Callable) -> Callable:
             self.commands[name] = func
 
@@ -387,7 +392,6 @@ c.run()
             + "\n - ".join(self.commands.keys())
             + "\033[0m"
         )
-        
 
     def cli_last(self):
         """display or raise last error raised by a command"""
