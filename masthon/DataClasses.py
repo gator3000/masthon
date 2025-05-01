@@ -2,7 +2,6 @@
 A classes representing API objects are here !
 """
 
-
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
@@ -13,7 +12,7 @@ from .Exceptions import DataClassException
 
 class DataClass:
     """:)"""
-    
+
     def __repr__(self) -> str:
         args = ", ".join(
             [
