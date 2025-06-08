@@ -82,9 +82,12 @@ def TRY(catched: Type[BaseException] = BaseException) -> Callable:
                     raise exc
                 else:
                     traceback.print_exception(exc)
-                    return None
+                    if len(exc.args) >= 3:
+                        return exc.args[2]
+                    else:
+                        raise exc
             except Exception as e:
-                traceback.print_exception(exc)
+                raise e
             else:
                 return return_
 

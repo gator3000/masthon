@@ -149,7 +149,7 @@ class Client:
         self,
         path: str,
         /,
-        method: Literal["get", "post", "delete", Union["put", "patch"]],
+        method: RequestMethod,
         annonymous: Optional[bool] = False,
         files: Optional[Dict[str, Tuple[str, IO, str]]] = None,
         additional_data: Optional[Dict[str, str]] = dict(),
@@ -174,16 +174,16 @@ class Client:
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
         kwargs.update(additional_data)
 
-        match method.lower():
-            case "get":
+        match method:
+            case RequestMethod.GET:
                 response = requests.get(url, data=kwargs, headers=auth, files=files)
-            case "post":
+            case RequestMethod.POST:
                 response = requests.post(url, data=kwargs, headers=auth, files=files)
-            case "delete":
+            case RequestMethod.DELETE:
                 response = requests.delete(url, data=kwargs, headers=auth, files=files)
-            case "put":
+            case RequestMethod.PUT:
                 response = requests.put(url, data=kwargs, headers=auth, files=files)
-            case "patch":
+            case RequestMethod.PATCH:
                 response = requests.patch(url, data=kwargs, headers=auth, files=files)
             case _:
                 raise HTTPError(f"Method `{method}` not known")
@@ -197,15 +197,18 @@ class Client:
                 if response.status_code == 401:
                     raise HTTP401Error("401 Unauthorized: Your acces token is invalid")
                 raise HTTPRequestError400(
-                    f"The request is invalid : HTTP Error {response.status_code}"
+                    f"The request is invalid : HTTP Error {response.status_code}",
+                    "\n",
+                    json.loads(response.text)["error"],
                 )
             case 5:
                 raise HTTPServerError500(
-                    f"An error as occured from the server `{self.server}` : HTTP Error {response.status_code}"
+                    f"An error as occured from the server `{self.server}` : HTTP Error {response.status_code}",
+                    "\n",
+                    json.loads(response.text)["error"],
                 )
             case _:
                 pass
-
         return response
 
     @LOG()
@@ -214,8 +217,8 @@ class Client:
         text: str = "Hello World from Mastodon API !",
         medias: Optional[List[str]] = [],
         visibility: Optional[
-            Literal["public", "unlisted", "private", "direct"]
-        ] = "public",
+            Visibility
+        ] = Visibility.UNLISTED,  # ? Changed to unlisted to prevent spam
         in_reply_to_id: Optional[str] = None,
         sensitive: Optional[Literal[None, True]] = None,
         language: Optional[str] = "en",
@@ -225,7 +228,7 @@ class Client:
         Args:
             text (str, optional): The message to send. Defaults to "Hello World from Mastodon API !".
             medias (List[str], optional): A list of media's ids to link with the status. Defaults to [].
-            visibility (str, optional): ... Defaults to "public".
+            visibility (Visibility, optional): ... Defaults to "unlisted".
             in_reply_to_id (str, optional): If post reply to another, put his id here. Defaults to None.
             sensitive (NoneType | True, optional): True to make; None to dont. False is making the post sensitive. Defaults to None.
             language (str, optional): ISO 639 language code for this status. Defaults to "en".
@@ -238,9 +241,9 @@ class Client:
             ids.append(str(self.upload_media(media_src).id))
         response = self._raw_request(
             "/api/v1/statuses",
-            method="post",
+            method=RequestMethod.POST,
             status=text,
-            visibility=visibility,
+            visibility=visibility.value,
             additional_data={"media_ids[]": ids},
             in_reply_to_id=in_reply_to_id,
             sensitive=sensitive,
@@ -268,7 +271,7 @@ class Client:
 
             response = self._raw_request(
                 "/api/v1/media",
-                method="post",
+                method=RequestMethod.POST,
                 files=files,
                 data={
                     "description": "Media uploaded with Masthon. @gator3000@mastodon.social for more infos"
@@ -294,7 +297,7 @@ class Client:
         else:
             id_ = status
         response = self._raw_request(
-            f"/api/v1/statuses/{id_}", method="delete", **kwargs
+            f"/api/v1/statuses/{id_}", method=RequestMethod.DELETE, **kwargs
         )
         return response
 

@@ -1,9 +1,10 @@
 """
-Some classes representing API objects here !
+Some classes representing API objects here ! (And enums needed to use the package well)
 """
 
 from typing import List, Optional, Dict, Any, Union
 from dataclasses import dataclass, field
+from enum import Enum
 from datetime import datetime
 
 import json
@@ -37,6 +38,7 @@ def _custom_list_objects_factory(arg: Any, Type) -> Any:
         return [Type(**element) for element in arg]
 
 
+# ! Already deprecated, need big rework and fixes
 class DataClass:
     """:)"""
 
@@ -302,7 +304,9 @@ class Status:
     def __post_init__(self):
         self.created_at = _date_factory(self.created_at)
         self.account = _custom_object_factory(self.account, Account)
-        self.media_attachments = _custom_list_objects_factory(self.media_attachments, MediaAttachment)
+        self.media_attachments = _custom_list_objects_factory(
+            self.media_attachments, MediaAttachment
+        )
         self.application = _custom_object_factory(self.application, Application)
         self.mentions = _custom_list_objects_factory(self.mentions, Mention)
         self.tags = _custom_list_objects_factory(self.tags, Tag)
@@ -310,3 +314,21 @@ class Status:
         self.poll = _custom_object_factory(self.poll, Poll)
         self.card = _custom_object_factory(self.card, PreviewCard)
         self.edited_at = _date_factory(self.edited_at)
+
+
+# Enums
+
+
+class RequestMethod(Enum):
+    GET = "get"
+    POST = "post"
+    DELETE = "delete"
+    PUT = "put"
+    PATCH = "patch"
+
+
+class Visibility(Enum):
+    PUBLIC = "public"
+    UNLISTED = "unlisted"
+    PRIVATE = "private"
+    DIRECT = "direct"
