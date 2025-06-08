@@ -38,43 +38,43 @@ def _custom_list_objects_factory(arg: Any, Type) -> Any:
         return [Type(**element) for element in arg]
 
 
-# ! Already deprecated, need big rework and fixes
-class DataClass:
-    """:)"""
+# # ! Already deprecated, need big rework and fixes
+# class DataClass:
+#     """:)"""
 
-    def __repr__(self) -> str:
-        args = ", ".join(
-            [
-                str(attr) + "=" + repr(self.__getattribute__(attr))
-                for attr in self.__slots__
-            ]
-        )
-        if len(args) > 76:
-            return f"""{self.__class__.__name__}({args[:40] + " ... " + args[-10:]})"""
-        else:
-            return f"""{self.__class__.__name__}({args})"""
+#     def __repr__(self) -> str:
+#         args = ", ".join(
+#             [
+#                 str(attr) + "=" + repr(self.__getattribute__(attr))
+#                 for attr in self
+#             ]
+#         )
+#         if len(args) > 76:
+#             return f"""{self.__class__.__name__}({args[:40] + " ... " + args[-10:]})"""
+#         else:
+#             return f"""{self.__class__.__name__}({args})"""
 
-    # # TODO: Complete that
-    # #! Not working yet
-    # def __set(self, **kwargs):
-    #     ignored = {}
-    #     ann = self.__init__.__annotations__
-    #     self.__slots__ = frozenset()
-    #     for k, v in kwargs:
-    #         if k not in self.__annotations__.keys():
-    #             ignored[k] = v
-    #         else:
-    #             self.__slots__ += frozenset(k)
-    #             try:
-    #                 if isinstance(v, ann[k]):
-    #                     setattr(self, k, v)
-    #             except TypeError as e:
-    #                 if e.args.startswith("Subscripted "):  # typing
-    #                     pass
-    #                 else:
-    #                     raise e
-    #     if len(ignored) > 0:
-    #         raise DataClassException(json.dumps(ignored), ignored)
+#     # # TODO: Complete that
+#     # #! Not working yet
+#     # def __set(self, **kwargs):
+#     #     ignored = {}
+#     #     ann = self.__init__.__annotations__
+#     #     self.__slots__ = frozenset()
+#     #     for k, v in kwargs:
+#     #         if k not in self.__annotations__.keys():
+#     #             ignored[k] = v
+#     #         else:
+#     #             self.__slots__ += frozenset(k)
+#     #             try:
+#     #                 if isinstance(v, ann[k]):
+#     #                     setattr(self, k, v)
+#     #             except TypeError as e:
+#     #                 if e.args.startswith("Subscripted "):  # typing
+#     #                     pass
+#     #                 else:
+#     #                     raise e
+#     #     if len(ignored) > 0:
+#     #         raise DataClassException(json.dumps(ignored), ignored)
 
 
 @dataclass(order=True)
@@ -111,9 +111,9 @@ class Focus:
 
 @dataclass(order=True)
 class Meta:
-    original: Union[Dict[str, Any], ImageMetaInfos]
-    small: Union[Dict[str, Any], ImageMetaInfos]
-    focus: Optional[Union[Dict[str, float], Focus]] = None
+    original: Dict[str, Any] | ImageMetaInfos
+    small: Dict[str, Any] | ImageMetaInfos
+    focus: Optional[Dict[str, float] | Focus] = None
 
     def __post_init__(self):
         self.focus = _custom_object_factory(self.focus, Focus)
@@ -127,7 +127,7 @@ class Source:
     sensitive: bool
     language: str
     note: str
-    fields: List[Union[Dict[str, Any], Field]]
+    fields: List[Dict[str, Any] | Field]
     follow_requests_count: int
 
     def __post_init__(self):
@@ -144,10 +144,6 @@ class Role:
 
 
 @dataclass(order=True)
-class Account: ...  # ? -> Prevent from undefined error
-
-
-@dataclass(order=True)
 class Account:
     id: str
     username: str
@@ -160,8 +156,8 @@ class Account:
     header: str
     header_static: str
     locked: bool
-    fields: List[Union[Dict[str, Any], Field]]
-    emojis: List[Union[Dict[str, Any], Emoji]]
+    fields: List[Dict[str, Any] | Field]
+    emojis: List[Dict[str, Any] | Emoji]
     bot: bool
     created_at: str
     statuses_count: int
@@ -169,14 +165,14 @@ class Account:
     following_count: int
     last_status_at: Optional[str] = None
     noindex: Optional[bool] = None
-    moved: Optional[Union[Dict[str, Any], "Account"]] = None
+    moved: Optional[Dict[str, Any] | Account] = None
     suspended: Optional[bool] = None
     limited: Optional[bool] = None
     group: Optional[bool] = None
     discoverable: Optional[bool] = None
     attribution_domains: Optional[List[str]] = None
-    source: Optional[Union[Dict[str, Any], Source]] = None
-    role: Optional[Union[Dict[str, Any], Role]] = None
+    source: Optional[Dict[str, Any] | Source] = None
+    role: Optional[Dict[str, Any] | Role] = None
     mute_expires_at: Optional[str] = None
     indexable: Optional[bool] = None
     uri: Optional[str] = None
@@ -221,7 +217,7 @@ class MediaAttachment:
     url: str
     preview_url: str
     preview_remote_url: str
-    meta: Union[Dict[str, Any], Meta]
+    meta: Dict[str, Any] | Meta
     text_url: Optional[str] = None
     remote_url: Optional[str] = None
     description: Optional[str] = None
@@ -240,7 +236,7 @@ class Poll:
     votes_count: int
     voters_count: int
     options: List[Dict[str, Any]]
-    emojis: List[Union[Dict[str, Any], Emoji]]
+    emojis: List[Dict[str, Any] | Emoji]
     voted: Optional[bool] = None
 
     def __post_init__(self):
@@ -271,25 +267,25 @@ class Status:
     id: str
     uri: str
     created_at: str
-    account: Union[Account, Dict[str, Any]]
+    account: Account | Dict[str, Any]
     content: str
     visibility: str
     sensitive: bool
     spoiler_text: str
-    media_attachments: List[Union[Dict[str, Any], MediaAttachment]]
-    mentions: List[Union[Dict[str, Any], Mention]]
-    tags: List[Union[Dict[str, Any], Tag]]
-    emojis: List[Union[Dict[str, Any], Emoji]]
+    media_attachments: List[Dict[str, Any] | MediaAttachment]
+    mentions: List[Dict[str, Any] | Mention]
+    tags: List[Dict[str, Any] | Tag]
+    emojis: List[Dict[str, Any] | Emoji]
     reblogs_count: int
     favourites_count: int
     replies_count: int
-    application: Optional[Union[Dict[str, Any], Application]] = None
+    application: Optional[Dict[str, Any] | Application] = None
     url: Optional[str] = None
     in_reply_to_id: Optional[str] = None
     in_reply_to_account_id: Optional[str] = None
     reblog: Optional["Status"] = None
-    poll: Optional[Union[Dict[str, Any], Poll]] = None
-    card: Optional[Union[Dict[str, Any], PreviewCard]] = None
+    poll: Optional[Dict[str, Any] | Poll] = None
+    card: Optional[Dict[str, Any] | PreviewCard] = None
     language: Optional[str] = None
     text: Optional[str] = None
     edited_at: Optional[str] = None

@@ -25,7 +25,7 @@ class Client:
     """
 
     def __init__(
-        self, /, token: str, server: Optional[str] = "https://mastodon.social"
+        self, /, token: str, server: str = "https://mastodon.social"
     ) -> None:
         """The representation of your aplication.
 
@@ -55,7 +55,7 @@ class Client:
                 raise ValueError("Server url doesn't match the format.")
         self.server = server
 
-        self.epoch: int = None
+        self.epoch: Optional[float] = None
         self.funcs: Dict[float, List[Tuple[float, Callable]]] = {}
         self.scheduled: Dict[Callable, float] = {}
 
@@ -78,7 +78,9 @@ class Client:
 
     stop.__doc__ = """stop the main mainloop"""  # ? I dont know why if I dont put this line stop.__doc__  is None
 
-    def _step(self, i: int = None) -> None:
+    def _step(self, i: Optional[int] = None) -> None:
+        if not isinstance(self.epoch, float):
+            raise MasthonException("Loop not started, impossible to execute one step.")
         for func, time_after in self.scheduled.items():
             if time.time() - self.epoch >= time_after:
                 func(self)
@@ -152,8 +154,8 @@ class Client:
         method: RequestMethod,
         annonymous: Optional[bool] = False,
         files: Optional[Dict[str, Tuple[str, IO, str]]] = None,
-        additional_data: Optional[Dict[str, str]] = dict(),
-        **kwargs: Optional[Dict[str, str]],
+        additional_data: Dict[str, str] = dict(),
+        **kwargs: Dict[str, str],
     ) -> requests.Response:
         """Make a request to the API.
 
@@ -172,7 +174,7 @@ class Client:
         """
         url = self.server + path
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
-        kwargs.update(additional_data)
+        data = {**kwargs, **additional_data}
 
         match method:
             case RequestMethod.GET:
@@ -216,9 +218,7 @@ class Client:
         self,
         text: str = "Hello World from Mastodon API !",
         medias: Optional[List[str]] = [],
-        visibility: Optional[
-            Visibility
-        ] = Visibility.UNLISTED,  # ? Changed to unlisted to prevent spam
+        visibility: Visibility = Visibility.UNLISTED,  # ? Changed to unlisted to prevent spam
         in_reply_to_id: Optional[str] = None,
         sensitive: Optional[Literal[None, True]] = None,
         language: Optional[str] = "en",
@@ -237,8 +237,9 @@ class Client:
             Status: This status as an object.
         """
         ids = list()
-        for media_src in medias:
-            ids.append(str(self.upload_media(media_src).id))
+        if isinstance(medias, list):
+            for media_src in medias:
+                ids.append(str(self.upload_media(media_src).id))
         response = self._raw_request(
             "/api/v1/statuses",
             method=RequestMethod.POST,
@@ -253,7 +254,7 @@ class Client:
 
     @LOG()
     def upload_media(
-        self, src: str, /, type_: Optional[str] = "image/{ext}"
+        self, src: str, /, type_: str = "image/{ext}"
     ) -> MediaAttachment:
         """Upload a media (syncronously) with /api/v1
 
@@ -283,11 +284,11 @@ class Client:
         return attachement
 
     @LOG()
-    def delete_status(self, status: Union[Status, str], **kwargs) -> requests.Response:
+    def delete_status(self, status: Status | str, **kwargs) -> requests.Response:
         """Delete given status
 
         Args:
-            status (Union[Status, str]): ...
+            status (Status | str): ...
 
         Returns:
             requests.Response: The response returned by the API.
@@ -302,7 +303,7 @@ class Client:
         return response
 
     # Commands
-    def CLI_help(self, command: str = None) -> None:
+    def CLI_help(self, command: Optional[str] = None) -> None:
         """display help message"""
         if command is None:
             print(
@@ -350,7 +351,7 @@ c.run()
                 traceback.print_exception(self.cli_last_error)
 
     # Decorators !
-    def looped_every(self, time: Optional[float] = 60) -> Callable:
+    def looped_every(self, time: float = 60) -> Callable:
         """Decorator for loop your own function into the mainloop.
 
         Args:
@@ -370,7 +371,7 @@ c.run()
 
         return _decorator
 
-    def schedule(self, after: Optional[float] = 0) -> Callable:
+    def schedule(self, after: float = 0) -> Callable:
         """Shedule your func x time after it being runned.
 
         Args:
