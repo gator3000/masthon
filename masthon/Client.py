@@ -298,6 +298,54 @@ class Client:
         )
         return response
 
+    # Commands
+    def CLI_help(self, command: str = None) -> None:
+        """display help message"""
+        if command is None:
+            print(
+                """
+\033[1mHELP\033[0m:
+Commands follow this simple syntax:
+    \033[2mcmd arg1_as_str arg2_as_str\033[0m
+
+You can add a command with this code:
+\033[2m```py
+c = Client(token="")
+@c.add_command(name="foo")
+def foo_command(client: Client, arg1: str, arg2: str = None):
+    print("hello world")
+
+c.run()
+```\033[0m
+
+\033[93mAll commands you can use here:
+ - """
+                + "\n - ".join(self.commands.keys())
+                + "\033[0m"
+            )
+        else:
+            if self.commands.get(command) is None:
+                raise CommandNotFound()
+            print(f"\033[1m{command} - \033[0m{self.commands[command].__doc__}")
+
+    def CLI_short_help(self) -> None:
+        """display commands availables"""
+        print(
+            """
+\033[93mAll commands you can use here:
+ - """
+            + "\n - ".join(self.commands.keys())
+            + "\033[0m"
+        )
+
+    def cli_last(self):
+        """display or raise last error raised by a command"""
+        if isinstance(self.cli_last_error, Exception):
+            if DEBUG:
+                raise RealException(self.cli_last_error) from self.cli_last_error
+            else:
+                traceback.print_exception(self.cli_last_error)
+
     # Decorators !
     def looped_every(self, time: Optional[float] = 60) -> Callable:
         """Decorator for loop your own function into the mainloop.
@@ -352,51 +400,3 @@ class Client:
             return func
 
         return _decorator
-
-    # Commands
-    def CLI_help(self, command: str = None) -> None:
-        """display help message"""
-        if command is None:
-            print(
-                """
-\033[1mHELP\033[0m:
-Commands follow this simple syntax:
-    \033[2mcmd arg1_as_str arg2_as_str\033[0m
-
-You can add a command with this code:
-\033[2m```py
-c = Client(token="")
-@c.add_command(name="foo")
-def foo_command(client: Client, arg1: str, arg2: str = None):
-    print("hello world")
-
-c.run()
-```\033[0m
-
-\033[93mAll commands you can use here:
- - """
-                + "\n - ".join(self.commands.keys())
-                + "\033[0m"
-            )
-        else:
-            if self.commands.get(command) is None:
-                raise CommandNotFound()
-            print(f"\033[1m{command} - \033[0m{self.commands[command].__doc__}")
-
-    def CLI_short_help(self) -> None:
-        """display commands availables"""
-        print(
-            """
-\033[93mAll commands you can use here:
- - """
-            + "\n - ".join(self.commands.keys())
-            + "\033[0m"
-        )
-
-    def cli_last(self):
-        """display or raise last error raised by a command"""
-        if isinstance(self.cli_last_error, Exception):
-            if DEBUG:
-                raise RealException(self.cli_last_error) from self.cli_last_error
-            else:
-                traceback.print_exception(self.cli_last_error)
