@@ -2,7 +2,7 @@
 The client !
 """
 
-from typing import Any, Dict, Callable, IO, Tuple, Optional, Literal
+from typing import Any, Dict, Callable, IO, Tuple, Optional, Literal, Set
 
 from .Exceptions import *
 from .utils import DEBUG, TRY, LOG, get_user_input
@@ -25,7 +25,11 @@ class Client:
     """
 
     def __init__(
-        self, /, token: str, server: str = "https://mastodon.social"
+        self,
+        /,
+        token: str,
+        server: str = "https://mastodon.social",
+        used_events: Optional[Event | Tuple[Event]] = None,
     ) -> None:
         """The representation of your aplication.
 
@@ -34,6 +38,7 @@ class Client:
             server (str, optional): The url to the instance where your account is registered. Defaults to "https://mastodon.social".
         """
 
+        # token format checker
         if not isinstance(token, str):
             raise TypeError(f"Token type `{type(token)}` not supported must be a str.")
         token = token.strip()
@@ -43,6 +48,7 @@ class Client:
             raise ValueError("Token doesn't match the format.")
         self.token = token
 
+        # server format checker
         if not isinstance(server, str):
             raise TypeError(
                 f"Server type `{type(server)}` not supported must be a str."
@@ -54,6 +60,26 @@ class Client:
             if not SERVER_FORMAT.match(server):
                 raise ValueError("Server url doesn't match the format.")
         self.server = server
+
+        self.activated_listeners: Dict[Event, List[Callable]]
+        if used_events is None:
+            self.activated_listeners = dict()
+        else:
+            if isinstance(used_events, tuple):
+                self.activated_listeners = {
+                    event : list()
+                    for event in Event
+                    if event in used_events
+                }
+            elif isinstance(used_events, Event):
+                self.activated_listeners = {
+                    event : list()
+                    for event in Event
+                    if used_events == event
+                }
+            else:
+                raise TypeError("Events type not handeled.")
+
 
         self.epoch: Optional[float] = None
         self.funcs: Dict[float, List[Tuple[float, Callable]]] = {}
@@ -70,7 +96,13 @@ class Client:
         self.RUNNING = False
 
     def __repr__(self) -> str:
-        return "Client(token=f'{SECRET_TOKEN}')"
+        return "Client(token=f'{SECRET_TOKEN}'" + f", server='{self.server}')"
+
+    def __format__(self, modifier: Optional[str] = None) -> str:
+        if modifier is not None and modifier.upper() == "DISPLAY_TOKEN":
+            return repr(self).format(SECRET_TOKEN=self.token)
+        else:
+            return repr(self)
 
     def stop(self):
         """stop the main mainloop"""
@@ -130,20 +162,6 @@ class Client:
                     )
             self._step(i)
             i += 1
-
-    # Derpecated (yeah, already) because CLI not implemented
-    # // def _run(self):
-    # //     if self.RUNNING:
-    # //         raise RuntimeError("You can't run two instances at the same time.")
-    # //     i = 0
-    # //     self.RUNNING = True
-    # //     while self.RUNNING:
-    # //         yield i, self._step(i)
-    # //         i += 1
-
-    # // def __iter__(self):
-    # //     for i, return_ in self._run():
-    # //         yield i, return_
 
     @TRY(HTTPError)
     @LOG(True, True, args_max_lenght=64)
@@ -253,9 +271,7 @@ class Client:
         return Status(**json.loads(response.text))
 
     @LOG()
-    def upload_media(
-        self, src: str, /, type_: str = "image/{ext}"
-    ) -> MediaAttachment:
+    def upload_media(self, src: str, /, type_: str = "image/{ext}") -> MediaAttachment:
         """Upload a media (syncronously) with /api/v1
 
         Args:
@@ -401,6 +417,21 @@ c.run()
         def _decorator(func: Callable) -> Callable:
             self.commands[name] = func
 
+            return func
+
+        return _decorator
+
+    def listen_event(self, event: Event) -> Callable:
+        """Listen for an event and start the function if it come
+
+        Args:
+            event (Event): The event whitch will call it.
+
+        Returns:
+            Callable: ...
+        """
+
+        def _decorator(func: Callable) -> Callable:
             return func
 
         return _decorator

@@ -7,6 +7,14 @@ Just a submodule for all exceptions you can raise and catch specific errors rela
 class MasthonException(BaseException): ...
 
 
+# All custom warnigsd are childrens of this class
+class MasthonWarning(Warning): ...
+
+
+# Deprecated warning
+class DeprecatedMethodWarning(Warning): ...
+
+
 # IO Transfer Errors
 class IOTransferException(MasthonException, IOError): ...
 

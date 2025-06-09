@@ -2,7 +2,7 @@
 Some classes representing API objects here ! (And enums needed to use the package well)
 """
 
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any, Union, Self
 from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
@@ -165,7 +165,7 @@ class Account:
     following_count: int
     last_status_at: Optional[str] = None
     noindex: Optional[bool] = None
-    moved: Optional[Dict[str, Any] | Account] = None
+    moved: Optional[Dict[str, Any] | Self] = None
     suspended: Optional[bool] = None
     limited: Optional[bool] = None
     group: Optional[bool] = None
@@ -328,3 +328,6 @@ class Visibility(Enum):
     UNLISTED = "unlisted"
     PRIVATE = "private"
     DIRECT = "direct"
+
+class Event(Enum):
+    NOTIFICATION = "notification"
