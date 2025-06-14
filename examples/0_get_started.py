@@ -1,5 +1,7 @@
 """
 First example !
+
+Just to handle the module.
 """
 
 from typing import Tuple
@@ -24,7 +26,7 @@ def post_greetings(local_client: Client):                       # default arumen
 
 # create commands to be used by you
 @client.add_command(name="post")                 # name to use in he cli tool
-def post(local_client: Client, *ms: Tuple[str]): # mean 1 default argument for all cmds (client) and a list of str : a sentence
+def post(local_client: Client, *ms: str):        # mean 1 default argument for all cmds (client) and a list of str : a sentence
     """post a status"""
     m = " ".join(ms)                             # rework the sentence to one string
     local_client.post_status(m)                  # use client method `post_status`
