@@ -1,5 +1,6 @@
 __pycache__/
 test[0-9].*
+debug.py
 last_graph.*
 .obsidian/
 .vscode/

@@ -38,7 +38,14 @@ def _custom_list_objects_factory(arg: Any, Type) -> Any:
         return [Type(**element) for element in arg]
 
 
-# # ! Already deprecated, need big rework and fixes
+def _convert_to_enum(arg: Any, enum: Any) -> Any:
+    for el in enum:
+        if el.value == arg:
+            return el
+    raise ValueError(f"`{arg}` is not a value of enum `{enum}`")
+
+
+# # ! Already deprecated, need big rework and fixes, instead use @dataclass
 # class DataClass:
 #     """:)"""
 
@@ -89,7 +96,7 @@ class Emoji:
 class Field:
     name: str
     value: str
-    verified_at: Optional[datetime | str] = None
+    verified_at: Optional[str | datetime] = None
 
     def __post_init__(self):
         self.verified_at = _date_factory(self.verified_at)
@@ -159,11 +166,11 @@ class Account:
     fields: List[Dict[str, Any] | Field]
     emojis: List[Dict[str, Any] | Emoji]
     bot: bool
-    created_at: str
+    created_at: str | datetime
     statuses_count: int
     followers_count: int
     following_count: int
-    last_status_at: Optional[str] = None
+    last_status_at: Optional[str | datetime] = None
     noindex: Optional[bool] = None
     moved: Optional[Dict[str, Any] | Self] = None
     suspended: Optional[bool] = None
@@ -173,7 +180,7 @@ class Account:
     attribution_domains: Optional[List[str]] = None
     source: Optional[Dict[str, Any] | Source] = None
     role: Optional[Dict[str, Any] | Role] = None
-    mute_expires_at: Optional[str] = None
+    mute_expires_at: Optional[str | datetime] = None
     indexable: Optional[bool] = None
     uri: Optional[str] = None
     hide_collections: Optional[Any] = None
@@ -230,7 +237,7 @@ class MediaAttachment:
 @dataclass(order=True)
 class Poll:
     id: str
-    expires_at: str
+    expires_at: str | datetime
     expired: bool
     multiple: bool
     votes_count: int
@@ -266,7 +273,7 @@ class PreviewCard:
 class Status:
     id: str
     uri: str
-    created_at: str
+    created_at: str | datetime
     account: Account | Dict[str, Any]
     content: str
     visibility: str
@@ -312,6 +319,92 @@ class Status:
         self.edited_at = _date_factory(self.edited_at)
 
 
+@dataclass
+class Report:
+    id: str
+    action_taken: bool
+    action_taken_at: Optional[str | datetime]
+    category: str
+    comment: str
+    forwarded: bool
+    created_at: str | datetime
+    status_ids: Optional[List[str]]
+    rule_ids: Optional[List[str]]
+    target_account: Dict[str, Any] | Account
+
+    def __post_init__(self):
+        self.action_taken_at = _date_factory(self.action_taken_at)
+        self.created_at = _date_factory(self.created_at)
+        self.target_account = _custom_object_factory(self.target_account, Account)
+
+
+@dataclass
+class RelationshipSeveranceEvent:
+    id: str
+    type: str
+    purged: bool
+    target_name: str
+    followers_count: int
+    following_count: int
+    created_at: str | datetime
+
+    def __post_init__(self):
+        self.created_at = _date_factory(self.created_at)
+
+
+@dataclass
+class Appeal:
+    text: str
+    state: str
+
+
+@dataclass
+class AccountWarning:
+    id: str
+    action: str
+    text: str
+    status_ids: Optional[List[str]]
+    target_account: Dict[str, Any] | Account
+    appeal: Optional[Dict[str, Any] | Appeal]
+    created_at: str | datetime
+
+    def __post_init__(self):
+        self.appeal = _custom_object_factory(self.appeal, Appeal)
+        self.created_at = _date_factory(self.created_at)
+
+
+@dataclass
+class Notification:
+    id: str
+    type: str
+    group_key: str
+    created_at: str | datetime
+    account: Account
+    status: Optional[Dict[str, Any] | Status] = None
+    report: Optional[Dict[str, Any] | Report] = None
+    event: Optional[Dict[str, Any] | RelationshipSeveranceEvent] = None
+    moderation_warning: Optional[Dict[str, Any] | AccountWarning] = None
+
+    def __post_init__(self):
+        self.type = _convert_to_enum(self.type, NotificationType)
+        self.created_at = _date_factory(self.created_at)
+        self.account = _custom_object_factory(self.account, Account)
+        self.report = _custom_object_factory(self.report, Report)
+        self.event = _custom_object_factory(self.event, RelationshipSeveranceEvent)
+        self.status = _custom_object_factory(self.status, Status)
+        self.moderation_warning = _custom_object_factory(
+            self.moderation_warning, AccountWarning
+        )
+
+@dataclass
+class Marker:
+    last_read_id: str
+    version: int
+    updated_at: str | datetime
+
+    def __post_init__(self):
+        self.updated_at = _date_factory(self.updated_at)
+
 # Enums
 
 
@@ -329,5 +422,30 @@ class Visibility(Enum):
     PRIVATE = "private"
     DIRECT = "direct"
 
+
 class Event(Enum):
-    NOTIFICATION = "notification"
+    UNREAD_NOTIFICATION = "unread_notification"
+    NEW_MENTION = "new_mention"
+
+
+class EventStatus(Enum):
+    TRIGGERED = "triggered"
+    NONE = "none"
+    ERROR = "error"
+
+
+class NotificationType(Enum):
+    MENTION = "mention"
+    STATUS = "status"
+    REBLOG = "reblog"
+    FOLLOW = "follow"
+    FOLLOW_REQUEST = "follow_request"
+    FAVOURITE = "favourite"
+    POLL = "poll"
+    UPDATE = "update"
+    ADMIN_SIGN_UP = "admin.sign_up"
+    ADMIN_REPORT = "admin.report"
+
+class TimelineType(Enum):
+    HOME = "home"
+    NOTIFICATIONS = "notifications"

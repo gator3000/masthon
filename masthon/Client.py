@@ -2,11 +2,15 @@
 The client !
 """
 
-from typing import Any, Dict, Callable, IO, Tuple, Optional, Literal, Set
+from typing import Any, Dict, Callable, IO, Tuple, Optional, Literal, Set, Iterable
 
 from .Exceptions import *
-from .utils import DEBUG, TRY, LOG, get_user_input
+from .utils import *
 from .DataClasses import *
+from .DataClasses import (
+    _convert_to_enum,
+)  #! My doesn't know the name if not written like this
+from .Events import Listeners
 
 import re
 import time
@@ -26,10 +30,11 @@ class Client:
 
     def __init__(
         self,
-        /,
         token: str,
         server: str = "https://mastodon.social",
+        *,
         used_events: Optional[Event | Tuple[Event]] = None,
+        event_reactivity: int = 15,
     ) -> None:
         """The representation of your aplication.
 
@@ -61,25 +66,26 @@ class Client:
                 raise ValueError("Server url doesn't match the format.")
         self.server = server
 
+        self.listeners = Listeners(self)
         self.activated_listeners: Dict[Event, List[Callable]]
         if used_events is None:
             self.activated_listeners = dict()
         else:
             if isinstance(used_events, tuple):
                 self.activated_listeners = {
-                    event : list()
-                    for event in Event
-                    if event in used_events
+                    event: list() for event in Event if event in used_events
                 }
             elif isinstance(used_events, Event):
                 self.activated_listeners = {
-                    event : list()
-                    for event in Event
-                    if used_events == event
+                    event: list() for event in Event if used_events == event
                 }
             else:
                 raise TypeError("Events type not handeled.")
 
+        self.event_reactivity: int = (
+            event_reactivity if len(self.activated_listeners) else -1
+        )
+        self.last_listened: float = -self.event_reactivity
 
         self.epoch: Optional[float] = None
         self.funcs: Dict[float, List[Tuple[float, Callable]]] = {}
@@ -104,7 +110,7 @@ class Client:
         else:
             return repr(self)
 
-    def stop(self):
+    def stop(self) -> None:
         """stop the main mainloop"""
         self.RUNNING = False
 
@@ -122,6 +128,16 @@ class Client:
                 if last - time.time() <= -loop_time:
                     func(self)
                     self.funcs[loop_time][j] = time.time(), func
+        if (
+            self.event_reactivity > 0
+            and time.time() - self.last_listened >= self.event_reactivity
+        ):
+            self.last_listened = time.time()
+            for event, funcs in self.activated_listeners.items():
+                out = self.listeners.listen_for(event)
+                if out.status == EventStatus.TRIGGERED:
+                    for func in funcs:
+                        func(self, out.data)
 
     def run(self) -> None:
         """Run the mainloop.
@@ -172,7 +188,9 @@ class Client:
         method: RequestMethod,
         annonymous: Optional[bool] = False,
         files: Optional[Dict[str, Tuple[str, IO, str]]] = None,
-        additional_data: Dict[str, str] = dict(),
+        additional_data: Dict[str, str] = {},
+        json_data: bool = False,
+        ratelimit_security: bool = True,
         **kwargs: Dict[str, str],
     ) -> requests.Response:
         """Make a request to the API.
@@ -193,39 +211,39 @@ class Client:
         url = self.server + path
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
         data = {**kwargs, **additional_data}
+        args = {"json": data} if json_data else {"data": data}
 
-        match method:
-            case RequestMethod.GET:
-                response = requests.get(url, data=kwargs, headers=auth, files=files)
-            case RequestMethod.POST:
-                response = requests.post(url, data=kwargs, headers=auth, files=files)
-            case RequestMethod.DELETE:
-                response = requests.delete(url, data=kwargs, headers=auth, files=files)
-            case RequestMethod.PUT:
-                response = requests.put(url, data=kwargs, headers=auth, files=files)
-            case RequestMethod.PATCH:
-                response = requests.patch(url, data=kwargs, headers=auth, files=files)
-            case _:
-                raise HTTPError(f"Method `{method}` not known")
+        if not json_data:
+            response = requests.request(
+                method.value.upper(), url, headers=auth, files=files, data=data
+            )
+        else:
+            response = requests.request(
+                method.value.upper(), url, headers=auth, files=files, json=data
+            )
 
         if response.status_code == 429:
-            self.stop()
-            raise HTTP401Error("429 Too many requests: Slow down !")
+            if ratelimit_security:
+                self.stop()
+            raise HTTPRateLimit("429 Too many requests: Slow down !")
 
         match response.status_code // 100:
             case 4:
                 if response.status_code == 401:
-                    raise HTTP401Error("401 Unauthorized: Your acces token is invalid")
+                    raise HTTP401Error(
+                        "401 Unauthorized: Your acces token is invalid",
+                        response.status_code,
+                    )
                 raise HTTPRequestError400(
                     f"The request is invalid : HTTP Error {response.status_code}",
                     "\n",
-                    json.loads(response.text)["error"],
+                    response.json()["error"],
+                    response.status_code,
                 )
             case 5:
                 raise HTTPServerError500(
                     f"An error as occured from the server `{self.server}` : HTTP Error {response.status_code}",
-                    "\n",
-                    json.loads(response.text)["error"],
+                    response.status_code,
                 )
             case _:
                 pass
@@ -240,7 +258,8 @@ class Client:
         in_reply_to_id: Optional[str] = None,
         sensitive: Optional[Literal[None, True]] = None,
         language: Optional[str] = "en",
-    ) -> Status:
+        **kwargs,
+    ) -> List[Status] | Status:
         """Post a status.
 
         Args:
@@ -267,11 +286,18 @@ class Client:
             in_reply_to_id=in_reply_to_id,
             sensitive=sensitive,
             language=language,
+            **kwargs,
         )
-        return Status(**json.loads(response.text))
+        if isinstance(response.json(), list):
+            return [Status(**el) for el in response.json()]
+        else:
+            return Status(**response.json())
+
 
     @LOG()
-    def upload_media(self, src: str, /, type_: str = "image/{ext}") -> MediaAttachment:
+    def upload_media(
+        self, src: str, *, type_: str = "image/{ext}", **kwargs
+    ) -> MediaAttachment:
         """Upload a media (syncronously) with /api/v1
 
         Args:
@@ -293,9 +319,10 @@ class Client:
                 data={
                     "description": "Media uploaded with Masthon. @gator3000@mastodon.social for more infos"
                 },
+                **kwargs,
             )
 
-        attachement = MediaAttachment(**json.loads(response.text))
+        attachement = MediaAttachment(**response.json())
         assert attachement.type != "unknown", UnexpectedServerResult()
         return attachement
 
@@ -314,9 +341,88 @@ class Client:
         else:
             id_ = status
         response = self._raw_request(
-            f"/api/v1/statuses/{id_}", method=RequestMethod.DELETE, **kwargs
+            f"/api/v1/statuses/{id_}",
+            method=RequestMethod.DELETE,
+            ratelimit_security=False,
+            **kwargs,
         )
         return response
+
+    @LOG()
+    def unread_notifications_count(
+        self, types: Iterable[NotificationType] = [], **kwargs
+    ) -> int:
+        """
+        Returns:
+            int: ....
+        """
+        response = self._raw_request(
+            add_url_parameters(
+                "/api/v1/notifications/unread_count", types=types, **kwargs
+            ),
+            method=RequestMethod.GET,
+        )
+        return int(response.json()["count"])
+
+    @LOG()
+    def get_notifications(
+        self,
+        types: Iterable[NotificationType] = [],
+        limit: Optional[int] = None,
+        min_id: Optional[str] = None,
+        **kwargs,
+    ) -> List[Notification]:
+        """Gets you notifications feed
+
+        Args:
+            limit (int, optional): ...
+
+        Returns:
+            List[Notification]: ....
+        """
+        response = self._raw_request(
+            add_url_parameters(
+                "/api/v1/notifications",
+                limit=limit,
+                types=types,
+                min_id=min_id,
+                **kwargs,
+            ),
+            method=RequestMethod.GET,
+        )
+        return [Notification(**el) for el in response.json()]
+
+    @LOG()
+    def get_marker(
+        self, timeline: Iterable[TimelineType], **kwargs
+    ) -> Dict[TimelineType, Marker]:
+        response = self._raw_request(
+            add_url_parameters(
+                "/api/v1/markers", timeline=[t.value for t in timeline], **kwargs
+            ),
+            method=RequestMethod.GET,
+            **kwargs,
+        )
+        return {
+            _convert_to_enum(t, TimelineType): Marker(**el)
+            for t, el in response.json().items()
+        }
+
+    @LOG()
+    def post_marker(
+        self, timelines: Dict[str, str], **kwargs
+    ) -> Dict[TimelineType, Marker]:
+        response = self._raw_request(
+            "/api/v1/markers",
+            method=RequestMethod.POST,
+            additional_data=timelines,
+            json_data=True,
+            **kwargs,
+        )
+        return {
+            _convert_to_enum(t, TimelineType): Marker(**el)
+            for t, el in response.json().items()
+        }
 
     # Commands
     def CLI_help(self, command: Optional[str] = None) -> None:
@@ -358,7 +464,7 @@ c.run()
             + "\033[0m"
         )
 
-    def cli_last(self):
+    def cli_last(self) -> None:
         """display or raise last error raised by a command"""
         if isinstance(self.cli_last_error, Exception):
             if DEBUG:
@@ -421,7 +527,7 @@ c.run()
 
         return _decorator
 
-    def listen_event(self, event: Event) -> Callable:
+    def listen_for(self, event: Event) -> Callable:
         """Listen for an event and start the function if it come
 
         Args:
@@ -431,7 +537,14 @@ c.run()
             Callable: ...
         """
 
+        if self.activated_listeners.get(event) is None:
+            raise EventNotActivated(
+                "You must explicitly activate events that you will use at the creation of your Client"
+            )
+
         def _decorator(func: Callable) -> Callable:
+            self.activated_listeners[event].append(func)
+
             return func
 
         return _decorator

@@ -1,5 +1,7 @@
 """
 2nd example :)
+
+Generate a graph from data collected periodically. (random)
 """
 
 from typing import List
@@ -11,6 +13,8 @@ from masthon.DataClasses import Visibility
 import matplotlib.pyplot as plt
 from random import choice
 from numpy.random import normal
+
+from time import sleep
 
 plt.style.use("dark_background")
 
@@ -24,7 +28,7 @@ def rand():
 
 
 # initialize lists
-value = 0
+value: float = 0
 adders: List[float] = list()
 values: List[float] = [value]
 colors: List[str] = list()
@@ -38,6 +42,7 @@ posts: List[DataClasses.Status] = list()
 def post(client: Client):
     global values, value, posts
 
+    # produce two randow steps in the dataset
     for _ in range(2):
         adders.append(rand())
         colors.append("red" if adders[-1] < 0 else "green")
@@ -75,8 +80,12 @@ def clean(client: Client):
     """stop program and delete messages"""
     global posts
     for post in reversed(posts):
-        client.delete_status(post)
-
+        try:
+            client.delete_status(post)
+            sleep(.5)
+        except Exceptions.HTTPRateLimit:
+            sleep(30*60)
+            client.delete_status(post)
     client.RUNNING = False  # Artificially stop the loop
 
 

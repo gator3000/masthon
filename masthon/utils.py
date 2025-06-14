@@ -2,18 +2,45 @@
 Simple utils module.
 """
 
-from typing import Any, Callable, Type, Optional
-
+from typing import Any, Callable, Type, Optional, Iterable
+from enum import Enum
 import traceback
 import sys, select
 
-DEBUG = False  # If debug is true errors are raised. Else they will be ignored (just printed).
+DEBUG = True  # If debug is true errors are raised. Else they will be ignored (just printed).
 
 
 def get_user_input() -> Optional[str]:
     if select.select([sys.stdin], [], [], 0.0)[0]:
         return sys.stdin.readline().strip()
     return None
+
+
+def add_url_parameters(url: str, **kwargs) -> str:
+    r = (
+        url
+        + ("?" if len(kwargs) > 0 else "")
+        + "&".join(
+            [
+                (
+                    k + "=" + str(v)
+                    if not isinstance(v, Iterable)
+                    else "".join(
+                        [
+                            k
+                            + "[]"
+                            + "="
+                            + (vv.value if isinstance(vv, Enum) else str(vv))
+                            for vv in v
+                        ]
+                    )
+                )
+                for k, v in kwargs.items()
+                if v != None
+            ]
+        )
+    )
+    return r
 
 
 def LOG(
@@ -29,6 +56,7 @@ def LOG(
     Returns:
         Callable: ...
     """
+
     def _decorator(func: Callable) -> Callable:
         def _wrapper(*args, **kwargs) -> Any:
             if before:
@@ -56,7 +84,9 @@ def LOG(
                     )
             r = func(*args, **kwargs)
             if after:
-                print(f"\033[1m\033[93m[LOG]\033[92m Returned |>\033[0m {r}")
+                print(
+                    f"\033[1m\033[93m[LOG]\033[92m Returned |>\033[0m {(str(r)[0:100] + str(r)[-10:0]) if len(str(r)) > 110 else r}"
+                )
             return r
 
         return _wrapper
@@ -73,6 +103,7 @@ def TRY(catched: Type[BaseException] = BaseException) -> Callable:
     Returns:
         Callable: ...
     """
+
     def _decorator(func: Callable):
         def _wrapper(*args, **kwargs) -> Any:
             try:
@@ -94,3 +125,13 @@ def TRY(catched: Type[BaseException] = BaseException) -> Callable:
         return _wrapper
 
     return _decorator
+
+
+def DEPRECATED(func: Callable) -> Callable:
+    def _wrapper(*args, **kwargs) -> Any:
+        print(
+            f"\033[1m\033[91m[WARN]\033[93m Deprecated function >\033[0m {func.__name__}(...)"
+        )
+        return func(*args, **kwargs)
+
+    return _wrapper
