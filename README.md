@@ -3,7 +3,7 @@
 A simple API for linking mastodon to your python codes.
 
 #Author : org.literie.gator
-#LastVersion : 0.1.1 beta
+#LastVersion : 0.2 alpha
 
 
 # How it works
