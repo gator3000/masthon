@@ -1,6 +1,7 @@
 # The Docker image that will be used to build your app
-image: node:lts
+image: alpine:latest
 create-pages:
+  stage: deploy
   pages:
     # The folder that contains the files to be exposed at the Page URL
     publish: docs/web_static
@@ -9,7 +10,8 @@ create-pages:
     # a pages deploy
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   # Functions that should be executed before the build script is run
-  before_script:
-    - npm install
+  artifacts:
+    paths:
+      - docs/web_static
   script:
-    - npm run build
+    - echo "nothing to do"
