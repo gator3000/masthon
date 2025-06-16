@@ -86,7 +86,7 @@ def clean(client: Client):
         except Exceptions.HTTPRateLimit:
             sleep(30*60)
             client.delete_status(post)
-    client.RUNNING = False  # Artificially stop the loop
+    client.stop()  # Artificially stop the loop
 
 
 c.run()

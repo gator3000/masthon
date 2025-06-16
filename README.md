@@ -19,7 +19,7 @@ A simple API for linking mastodon to your python codes.
 	    - [x] Upload a file
 	- Timelines
 		- Home & Tags
-			- [ ] 
+			- [ ] Get timeline
 		- Notifications
 		    - [x] Get unread notification count
 		    - [x] Get last received notifications
@@ -43,11 +43,11 @@ A simple API for linking mastodon to your python codes.
 		- [x] One time execution
 		- [x] Loop back
 
-# How it works
+## How it works
 
-The package is organized around a main class : The [[Client]]. It contain your app infos a mainloop and some decorator generators like `@schedule()` ([[Client#`schedule(...)`|Client.schedule()]]).
+The package is organized around a main class : The [[Client]]. It contain your app infos a mainloop and some decorator generators like `@schedule()` ([[Client#schedule(...)|Client.schedule()]]).
 
-When you defined all your functions, you can start the #mainloop ([[Client#`run(...)`|Client.run()]]) and see it working (normally :) ... ).
+When you defined all your functions, you can start the #mainloop ([[Client#run(...)|Client.run()]]) and see it working (normally :) ... ).
 
 # License
 

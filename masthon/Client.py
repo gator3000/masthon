@@ -9,7 +9,7 @@ from .utils import *
 from .DataClasses import *
 from .DataClasses import (
     _convert_to_enum,
-)  #! My doesn't know the name if not written like this
+)  #! Mypy doesn't know the name if not written like this
 from .Events import Listeners
 
 import re
@@ -117,17 +117,22 @@ class Client:
     stop.__doc__ = """stop the main mainloop"""  # ? I dont know why if I dont put this line stop.__doc__  is None
 
     def _step(self, i: Optional[int] = None) -> None:
+        # Checks
         if not isinstance(self.epoch, float):
             raise MasthonException("Loop not started, impossible to execute one step.")
+        
+        # Sheduled functions (executed one time)
         for func, time_after in self.scheduled.items():
             if time.time() - self.epoch >= time_after:
                 func(self)
                 del self.scheduled[func]
+        # Looped functions (every `loop_time`)
         for loop_time, flist in self.funcs.items():
             for j, (last, func) in enumerate(flist):
                 if last - time.time() <= -loop_time:
                     func(self)
                     self.funcs[loop_time][j] = time.time(), func
+        # Event handling
         if (
             self.event_reactivity > 0
             and time.time() - self.last_listened >= self.event_reactivity
@@ -184,7 +189,6 @@ class Client:
     def _raw_request(
         self,
         path: str,
-        /,
         method: RequestMethod,
         annonymous: Optional[bool] = False,
         files: Optional[Dict[str, Tuple[str, IO, str]]] = None,
@@ -201,6 +205,8 @@ class Client:
             annonymous (bool, optional): If True, token is omitten. Defaults to False.
             files (str, optional): Files to post. Defaults to None.
             additional_data (dict, optional): Data to add that you can put as a kwarg (like `"media_ids[]"`). Defaults to dict().
+            json_data (bool, optional): True to send data in json object
+            ratelimit_security (bool, optional): True to stop the loop if your server raise HTTP 429, ratelimit
 
         Raises:
             HTTPError: If status_code not 2xx or 3xx.
@@ -353,6 +359,9 @@ class Client:
         self, types: Iterable[NotificationType] = [], **kwargs
     ) -> int:
         """
+        Args:
+            types (List[NotificationType], optinal): types counted
+
         Returns:
             int: ....
         """
@@ -375,7 +384,9 @@ class Client:
         """Gets you notifications feed
 
         Args:
+            types (List[NotificationType], optinal): types returned
             limit (int, optional): ...
+            min_id (str, optional): only newer than this id
 
         Returns:
             List[Notification]: ....
@@ -396,6 +407,14 @@ class Client:
     def get_marker(
         self, timeline: Iterable[TimelineType], **kwargs
     ) -> Dict[TimelineType, Marker]:
+        """Gets the last marker generated of given timelines
+
+        Args:
+            timeline (Iterable[TimelineType]): ...
+        
+        Returns:
+            Dict[TimelineType, Marker]: ....
+        """
         response = self._raw_request(
             add_url_parameters(
                 "/api/v1/markers", timeline=[t.value for t in timeline], **kwargs
@@ -412,6 +431,16 @@ class Client:
     def post_marker(
         self, timelines: Dict[str, str], **kwargs
     ) -> Dict[TimelineType, Marker]:
+        """Post and generate markers of given ids
+
+        Args:
+            timeline (Iterable[TimelineType]):
+                Example:
+                {TimelineType.NOTIFICATIONS.value: {"last_read_id": notification.id}}
+        
+        Returns:
+            Dict[TimelineType, Marker]: markers generated
+        """
         response = self._raw_request(
             "/api/v1/markers",
             method=RequestMethod.POST,
@@ -494,7 +523,7 @@ c.run()
         return _decorator
 
     def schedule(self, after: float = 0) -> Callable:
-        """Shedule your func x time after it being runned.
+        """Shedule your func x seconds after it being runned.
 
         Args:
             after (float, optional): ... Defaults to 0.

@@ -6,7 +6,7 @@ Interact with other accounts !
 
 from typing import List, Dict
 
-from masthon import Client
+from masthon import Client, Exceptions
 from masthon.DataClasses import *
 
 
@@ -17,12 +17,13 @@ c = Client(
 )
 
 
-@c.listen_for(Event.NEW_MENTION)  # Will be triggered only when NEW_MENTION is
+@c.listen_for(Event.NEW_MENTION)                                       # Will be triggered only when NEW_MENTION is
 def mention(
     client: Client, data: Dict[str, List[Notification] | Notification]
-):  # Defaults arguments to handle
-    assert isinstance(data["notification"], Notification)  # Mypy checker crap
-    assert isinstance(data["notification"].status, Status)  # Mypy checker crap
+):                                                                     # Defaults arguments to handle
+    # Mypy checker crap
+    assert isinstance(data["notification"], Notification), Exceptions.MasthonException
+    assert isinstance(data["notification"].status, Status), Exceptions.MasthonException
 
     # reply !
     client.post_status(

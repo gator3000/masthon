@@ -1,50 +1,70 @@
 #exceptionManaging 
 All specific exception of Masthon is defined here.
 
-#  `MasthonException`
+#  MasthonException
 #exception #exceptionManaging 
 Mummy of all custom exception
 
-#  `IOTransferException`
+# MasthonWarning
 #exception #exceptionManaging 
 ...
 
-# `UnexpectedServerResult`
+# DeprecatedMethodWarning
 #exception #exceptionManaging 
 ...
 
-# `HTTPError`
+#  IOTransferException
 #exception #exceptionManaging 
 ...
 
-# `HTTPRequestError400`
+# UnexpectedServerResult
 #exception #exceptionManaging 
 ...
 
-# `HTTP401Error`
+# HTTPError
 #exception #exceptionManaging 
 ...
 
-# `HTTPServerError500`
+# HTTPRequestError400
 #exception #exceptionManaging 
 ...
 
-# `DataClassException`
+# HTTP401Error
 #exception #exceptionManaging 
 ...
 
-# `RealException`
+# HTTPRateLimit
 #exception #exceptionManaging 
 ...
 
-# `CLIException`
+# HTTPServerError500
 #exception #exceptionManaging 
 ...
 
-# `CommandNotFound`
+# DataClassException
 #exception #exceptionManaging 
 ...
 
-# `CommandExecutionError`
+# RealException
+#exception #exceptionManaging 
+...
+
+# CLIException
+#exception #exceptionManaging 
+...
+
+# CommandNotFound
+#exception #exceptionManaging 
+...
+
+# CommandExecutionError
+#exception #exceptionManaging 
+...
+
+# EventException
+#exception #exceptionManaging 
+...
+
+# EventNotActivated
 #exception #exceptionManaging 
 ...

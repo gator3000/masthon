@@ -4,3 +4,4 @@ debug.py
 last_graph.*
 .obsidian/
 .vscode/
+.mypy_cache/
