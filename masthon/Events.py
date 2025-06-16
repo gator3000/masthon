@@ -1,7 +1,6 @@
 from typing import Self, Dict
 from enum import Enum
 
-from .definitions import Client
 from .DataClasses import *
 from .Exceptions import *
 
@@ -15,7 +14,6 @@ class ListenerOutput:
 
 
 class Listeners:
-    # def __init__(self, client: Client):
     def __init__(self, client):
         self.client = client
 
