@@ -5,7 +5,7 @@ with open("README.md") as f:
     
 setup(
     name='Masthon',
-    version='v0.2a',
+    version='v0.2a1dev',
     description='A simple API for linking masthodon to your python codes.',
     long_description = long_description,
     long_description_content_type = "text/markdown",
