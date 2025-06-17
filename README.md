@@ -4,7 +4,9 @@ A simple API for linking mastodon to your python codes.
 
 #Author : org.literie.gator
 
-#LastVersion : 0.2 alpha
+#LastVersion : 0.2 beta
+
+#FormatedDocumentation : at [Documentation on Gitlab Pages](https://Gator3000.gitlab.io/masthon)
 
 # Features
 - Masthon engine

@@ -183,8 +183,8 @@ class Account:
     mute_expires_at: Optional[str | datetime] = None
     indexable: Optional[bool] = None
     uri: Optional[str] = None
-    hide_collections: Optional[Any] = None
-    roles: Optional[List[Any]] = None
+    hide_collections: Optional[bool] = None
+    roles: Optional[List[Dict[str, Any] | Role]] = None
 
     def __post_init__(self):
         self.fields = _custom_list_objects_factory(self.fields, Field)
@@ -233,6 +233,10 @@ class MediaAttachment:
     def __post_init__(self):
         self.meta = _custom_object_factory(self.meta, Meta)
 
+@dataclass(order=True)
+class Poll_Option:
+    title: str
+    votes_count: Optional[int]
 
 @dataclass(order=True)
 class Poll:
@@ -242,12 +246,13 @@ class Poll:
     multiple: bool
     votes_count: int
     voters_count: int
-    options: List[Dict[str, Any]]
+    options: List[Dict[str, Any] | Poll_Option]
     emojis: List[Dict[str, Any] | Emoji]
     voted: Optional[bool] = None
 
     def __post_init__(self):
         self.expires_at = _date_factory(self.expires_at)
+        self.options = _custom_list_objects_factory(self.options, Poll_Option)
         self.emojis = _custom_list_objects_factory(self.emojis, Emoji)
 
 
@@ -267,6 +272,12 @@ class PreviewCard:
     embed_url: str
     image: Optional[str] = None
     blurhash: Optional[str] = None
+
+
+@dataclass(order=True)
+class Quote:
+    state: str
+    status: Optional[Dict[str, Any] | "Status"] = None
 
 
 @dataclass(order=True)
@@ -301,8 +312,8 @@ class Status:
     muted: Optional[bool] = None
     bookmarked: Optional[bool] = None
     pinned: Optional[bool] = None
-    filtered: Optional[List[Dict[str, Any]]] = None
-    quote: Optional[Any] = None
+    filtered: Optional[List[Dict[str, Any]]] = None # TODO: /!\ ADD Support for theses objects
+    quote: Optional[Quote] = None
 
     def __post_init__(self):
         self.created_at = _date_factory(self.created_at)
@@ -379,7 +390,7 @@ class Notification:
     type: str
     group_key: str
     created_at: str | datetime
-    account: Account
+    account: Dict[str, Any] | Account
     status: Optional[Dict[str, Any] | Status] = None
     report: Optional[Dict[str, Any] | Report] = None
     event: Optional[Dict[str, Any] | RelationshipSeveranceEvent] = None

@@ -1,6 +1,6 @@
 from .Client import Client
 
-__version__ = "v0.2a"
+__version__ = "v0.2b"
 
 
 DEFAULT_MESSAGE = """Hello from the #API at time : `{}`.
@@ -13,4 +13,4 @@ This is an automatic message posted every times I test my code. Tell me if it sp
 
 #mastodonAPI #masto #français #developpement #dev"""
 
-__slots__ = ("__version__", "Client", "Dataclasses", "Events", "Exceptions", "utils")
+__slots__ = ("__version__", "Client", "DataClasses", "Events", "Exceptions", "utils")

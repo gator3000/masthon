@@ -13,7 +13,7 @@ Return a string if some `sys.stdin` available.
 # add_url_parameters(...)
 #function #RequestAPI 
 `def add_url_parameters(url: str, **kwargs) -> str:`
-Add parameters to a given url following mastodon policy.
+Add parameters to a given url following mastodon policy for arrays.
 
 # LOG(...)
 #function #decoratorGenerator 
