@@ -12,3 +12,5 @@ Talk to me about my project at `@gator3000@mastodon.social` or on discord `_gato
 This is an automatic message posted every times I test my code. Tell me if it spam :)
 
 #mastodonAPI #masto #français #developpement #dev"""
+
+__slots__ = ("__version__", "Client", "Dataclasses", "Events", "Exceptions", "utils")

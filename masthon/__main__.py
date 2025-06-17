@@ -1,8 +1,16 @@
-from .__init__ import *
-from time import asctime
+from .__init__ import Client, __version__ as version
 
+from time import asctime
+import sys
 
 if __name__ == "__main__":
+    if sys.argv[1] == "-v":
+        print("Made with <3 by  @gator3000@mastodon.social")
+        print("Issues         : https://gitlab.com/Gator3000/masthon/-/issues")
+        print("Documentation  : https://gator3000.gitlab.io/masthon/")
+        print()
+        print(f"Current version: {version}")
+        sys.exit(0)
     print("Hello World ! Let's start with posting a simple message.")
     server = input("What's your instance (like `https://mastodon.social`) : ")
     token = input("What's your account token : ")
