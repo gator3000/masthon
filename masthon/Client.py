@@ -122,10 +122,13 @@ class Client:
             raise MasthonException("Loop not started, impossible to execute one step.")
         
         # Sheduled functions (executed one time)
+        executed = list()
         for func, time_after in self.scheduled.items():
             if time.time() - self.epoch >= time_after:
                 func(self)
-                del self.scheduled[func]
+                executed.append(func)
+        for f in executed:
+            del self.scheduled[f]
         # Looped functions (every `loop_time`)
         for loop_time, flist in self.funcs.items():
             for j, (last, func) in enumerate(flist):
