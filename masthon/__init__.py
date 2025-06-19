@@ -13,4 +13,4 @@ This is an automatic message posted every times I test my code. Tell me if it sp
 
 #mastodonAPI #masto #français #developpement #dev"""
 
-__slots__ = ("__version__", "Client", "DataClasses", "Events", "Exceptions", "utils")
+__all__ = ("__version__", "Client", "DataClasses", "Events", "Exceptions", "utils", "DEFAULT_MESSAGE")

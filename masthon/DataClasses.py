@@ -12,7 +12,7 @@ import json
 from .Exceptions import DataClassException
 
 
-def _date_factory(arg: str | datetime) -> datetime:
+def date_factory(arg: str | datetime) -> datetime:
     return (
         arg
         if isinstance(arg, datetime)
@@ -24,21 +24,21 @@ def _date_factory(arg: str | datetime) -> datetime:
     )
 
 
-def _custom_object_factory(arg: Any, Type) -> Any:
+def custom_object_factory(arg: Any, Type) -> Any:
     if isinstance(arg, Type) or arg is None:
         return arg
     else:
         return Type(**arg)
 
 
-def _custom_list_objects_factory(arg: Any, Type) -> Any:
+def custom_list_objects_factory(arg: Any, Type) -> Any:
     if len(arg) < 1 or isinstance(arg[0], Type):
         return arg
     else:
         return [Type(**element) for element in arg]
 
 
-def _convert_to_enum(arg: Any, enum: Any) -> Any:
+def convert_to_enum(arg: Any, enum: Any) -> Any:
     for el in enum:
         if el.value == arg:
             return el
@@ -99,7 +99,7 @@ class Field:
     verified_at: Optional[str | datetime] = None
 
     def __post_init__(self):
-        self.verified_at = _date_factory(self.verified_at)
+        self.verified_at = date_factory(self.verified_at)
 
 
 @dataclass(order=True)
@@ -123,9 +123,9 @@ class Meta:
     focus: Optional[Dict[str, float] | Focus] = None
 
     def __post_init__(self):
-        self.focus = _custom_object_factory(self.focus, Focus)
-        self.original = _custom_object_factory(self.original, ImageMetaInfos)
-        self.small = _custom_object_factory(self.small, ImageMetaInfos)
+        self.focus = custom_object_factory(self.focus, Focus)
+        self.original = custom_object_factory(self.original, ImageMetaInfos)
+        self.small = custom_object_factory(self.small, ImageMetaInfos)
 
 
 @dataclass(order=True)
@@ -138,7 +138,7 @@ class Source:
     follow_requests_count: int
 
     def __post_init__(self):
-        self.fields = _custom_list_objects_factory(self.fields)
+        self.fields = custom_list_objects_factory(self.fields)
 
 
 @dataclass(order=True)
@@ -187,14 +187,14 @@ class Account:
     roles: Optional[List[Dict[str, Any] | Role]] = None
 
     def __post_init__(self):
-        self.fields = _custom_list_objects_factory(self.fields, Field)
-        self.emojis = _custom_list_objects_factory(self.emojis, Emoji)
-        self.created_at = _date_factory(self.created_at)
-        self.last_status_at = _date_factory(self.last_status_at)
-        self.moved = _custom_object_factory(self.moved, Account)
-        self.source = _custom_object_factory(self.source, Source)
-        self.role = _custom_object_factory(self.role, Role)
-        self.mute_expires_at = _date_factory(self.mute_expires_at)
+        self.fields = custom_list_objects_factory(self.fields, Field)
+        self.emojis = custom_list_objects_factory(self.emojis, Emoji)
+        self.created_at = date_factory(self.created_at)
+        self.last_status_at = date_factory(self.last_status_at)
+        self.moved = custom_object_factory(self.moved, Account)
+        self.source = custom_object_factory(self.source, Source)
+        self.role = custom_object_factory(self.role, Role)
+        self.mute_expires_at = date_factory(self.mute_expires_at)
 
 
 @dataclass(order=True)
@@ -231,7 +231,7 @@ class MediaAttachment:
     blurhash: Optional[str] = None
 
     def __post_init__(self):
-        self.meta = _custom_object_factory(self.meta, Meta)
+        self.meta = custom_object_factory(self.meta, Meta)
 
 @dataclass(order=True)
 class Poll_Option:
@@ -251,9 +251,9 @@ class Poll:
     voted: Optional[bool] = None
 
     def __post_init__(self):
-        self.expires_at = _date_factory(self.expires_at)
-        self.options = _custom_list_objects_factory(self.options, Poll_Option)
-        self.emojis = _custom_list_objects_factory(self.emojis, Emoji)
+        self.expires_at = date_factory(self.expires_at)
+        self.options = custom_list_objects_factory(self.options, Poll_Option)
+        self.emojis = custom_list_objects_factory(self.emojis, Emoji)
 
 
 @dataclass(order=True)
@@ -316,18 +316,18 @@ class Status:
     quote: Optional[Quote] = None
 
     def __post_init__(self):
-        self.created_at = _date_factory(self.created_at)
-        self.account = _custom_object_factory(self.account, Account)
-        self.media_attachments = _custom_list_objects_factory(
+        self.created_at = date_factory(self.created_at)
+        self.account = custom_object_factory(self.account, Account)
+        self.media_attachments = custom_list_objects_factory(
             self.media_attachments, MediaAttachment
         )
-        self.application = _custom_object_factory(self.application, Application)
-        self.mentions = _custom_list_objects_factory(self.mentions, Mention)
-        self.tags = _custom_list_objects_factory(self.tags, Tag)
-        self.emojis = _custom_list_objects_factory(self.emojis, Emoji)
-        self.poll = _custom_object_factory(self.poll, Poll)
-        self.card = _custom_object_factory(self.card, PreviewCard)
-        self.edited_at = _date_factory(self.edited_at)
+        self.application = custom_object_factory(self.application, Application)
+        self.mentions = custom_list_objects_factory(self.mentions, Mention)
+        self.tags = custom_list_objects_factory(self.tags, Tag)
+        self.emojis = custom_list_objects_factory(self.emojis, Emoji)
+        self.poll = custom_object_factory(self.poll, Poll)
+        self.card = custom_object_factory(self.card, PreviewCard)
+        self.edited_at = date_factory(self.edited_at)
 
 
 @dataclass
@@ -344,9 +344,9 @@ class Report:
     target_account: Dict[str, Any] | Account
 
     def __post_init__(self):
-        self.action_taken_at = _date_factory(self.action_taken_at)
-        self.created_at = _date_factory(self.created_at)
-        self.target_account = _custom_object_factory(self.target_account, Account)
+        self.action_taken_at = date_factory(self.action_taken_at)
+        self.created_at = date_factory(self.created_at)
+        self.target_account = custom_object_factory(self.target_account, Account)
 
 
 @dataclass
@@ -360,7 +360,7 @@ class RelationshipSeveranceEvent:
     created_at: str | datetime
 
     def __post_init__(self):
-        self.created_at = _date_factory(self.created_at)
+        self.created_at = date_factory(self.created_at)
 
 
 @dataclass
@@ -380,8 +380,8 @@ class AccountWarning:
     created_at: str | datetime
 
     def __post_init__(self):
-        self.appeal = _custom_object_factory(self.appeal, Appeal)
-        self.created_at = _date_factory(self.created_at)
+        self.appeal = custom_object_factory(self.appeal, Appeal)
+        self.created_at = date_factory(self.created_at)
 
 
 @dataclass
@@ -397,13 +397,13 @@ class Notification:
     moderation_warning: Optional[Dict[str, Any] | AccountWarning] = None
 
     def __post_init__(self):
-        self.type = _convert_to_enum(self.type, NotificationType)
-        self.created_at = _date_factory(self.created_at)
-        self.account = _custom_object_factory(self.account, Account)
-        self.report = _custom_object_factory(self.report, Report)
-        self.event = _custom_object_factory(self.event, RelationshipSeveranceEvent)
-        self.status = _custom_object_factory(self.status, Status)
-        self.moderation_warning = _custom_object_factory(
+        self.type = convert_to_enum(self.type, NotificationType)
+        self.created_at = date_factory(self.created_at)
+        self.account = custom_object_factory(self.account, Account)
+        self.report = custom_object_factory(self.report, Report)
+        self.event = custom_object_factory(self.event, RelationshipSeveranceEvent)
+        self.status = custom_object_factory(self.status, Status)
+        self.moderation_warning = custom_object_factory(
             self.moderation_warning, AccountWarning
         )
 
@@ -414,7 +414,7 @@ class Marker:
     updated_at: str | datetime
 
     def __post_init__(self):
-        self.updated_at = _date_factory(self.updated_at)
+        self.updated_at = date_factory(self.updated_at)
 
 # Enums
 
