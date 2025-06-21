@@ -32,7 +32,7 @@ class Client:
         token: str,
         server: str = "https://mastodon.social",
         *,
-        async_level: int = 0, # 0 means nothing asyncronous, 1: step by steps, 2: all asynchronous #* one not really useful
+        async_level: int = 0,
         used_events: Optional[Event | Tuple[Event]] = None,
         event_reactivity: int = 15,
     ) -> None:
