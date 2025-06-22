@@ -4,14 +4,14 @@ A simple API for linking mastodon to your python codes.
 
 #Author : org.literie.gator
 
-#LastVersion : 0.2 beta
+#LastVersion : 0.3 alpha
 
 #FormatedDocumentation : at [Documentation on Gitlab Pages](https://Gator3000.gitlab.io/masthon)
 
 # Features
 - Masthon engine
 	- [x] main loop
-	- [x] asynchronous
+	- [x] asynchronous (actually, threading)
 - Server Interactions
 	- [x] Make a request to your server
 	- Statuses
@@ -65,6 +65,6 @@ To contribute, just contact me, give me some of your programs, so I can choose p
 
 | Platform   | Link                               | Pseudo / ID                        |
 | ---------- | ---------------------------------- | ---------------------------------- |
-| *Mastodon* | https://mastodon.social/@gator3000 | @gator3000                         |
+| *Mastodon* | https://mastodon.social/@gator3000 | `@gator3000`                       |
 | *Mail*     | -------------------                | org.literie.gator@h3110.aleeas.com |
-| *Discord*  | https://discord.com                | \_gator3000                        |
+| *Discord*  | https://discord.com                | `_gator3000`                       |

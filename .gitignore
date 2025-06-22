@@ -5,3 +5,4 @@ last_graph.*
 .obsidian/
 .vscode/
 .mypy_cache/
+chv.sh
