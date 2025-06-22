@@ -2,6 +2,7 @@
 Some classes representing API objects here ! (And enums needed to use the package well)
 """
 
+# from __future__ import annotations
 from typing import (
     List,
     Optional,
@@ -14,10 +15,11 @@ from typing import (
     Generic,
     TypeVar,
     Type,
+    TYPE_CHECKING,
 )
 import types
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, EnumType
 from datetime import datetime
 
 import json
@@ -25,7 +27,7 @@ import json
 from .Exceptions import DataClassException
 
 
-def date_factory(arg: str | datetime) -> datetime:
+def date_factory(arg: str | datetime) -> Optional[datetime]:
     return (
         arg
         if isinstance(arg, datetime)
@@ -37,32 +39,53 @@ def date_factory(arg: str | datetime) -> datetime:
     )
 
 
-def custom_object_factory(arg: Any, Type) -> Any:
-    if isinstance(arg, Type) or arg is None:
+def date_list_factory(arg: List[str | datetime]) -> List[Optional[datetime]]:
+    return [date_factory(element) for element in arg]
+
+
+TYPE_TVAR = TypeVar("TYPE_TVAR", bound=Type)
+ENUM_TVAR = TypeVar("ENUM_TVAR", bound=EnumType)
+
+
+def custom_object_factory(arg: Any, Type: TYPE_TVAR) -> Optional[TYPE_TVAR]:
+    if arg is None:
+        return None
+    elif isinstance(Type, str):
+        return globals()[Type](**arg)
+    elif isinstance(arg, Type):
         return arg
     else:
-        if not isinstance(Type, tuple):
+        if not isinstance(Type, (tuple, type(Union[int, str]))):
             return Type(**arg)
         else:
-            for CType in Type:
+            Types: tuple
+            if isinstance(Type, tuple):
+                Types = Type
+            elif isinstance(Type, str):
+                Types = Type
+            else:
+                if not TYPE_CHECKING:  # Mypy stop, #! Please let it here
+                    Types = Type.__args__  # ? He does'nt love this statement
+            for CType in Types:
                 try:
                     return CType(**arg)
                 except TypeError:
                     continue
+            raise TypeError
 
 
-def custom_list_objects_factory(arg: Any, Type) -> Any:
-    if len(arg) < 1 or isinstance(arg[0], Type):
-        return arg
-    else:
-        return [Type(**element) for element in arg]
+def custom_list_objects_factory(arg: Any, Type: TYPE_TVAR) -> List[Optional[TYPE_TVAR]]:
+    return [custom_object_factory(element, Type) for element in arg]
 
 
-def convert_to_enum(arg: Any, enum: Any) -> Any:
-    for el in enum:
-        if el.value == arg:
-            return el
-    raise ValueError(f"`{arg}` is not a value of enum `{enum}`")
+def convert_to_enum(arg: Any, Enum_: ENUM_TVAR) -> ENUM_TVAR:
+    if not TYPE_CHECKING:
+        return Enum_(arg)
+    raise Exception("Mypy CRAP")
+
+
+def convert_to_list_enum(arg: Any, Enum: ENUM_TVAR) -> List[ENUM_TVAR]:
+    return [convert_to_enum(element, Enum) for element in arg]
 
 
 class __DETECTOR_CLS: ...
@@ -87,44 +110,75 @@ API_OBJECT: TypeAlias = Dict[str, Any] | _APIO0 | OBJECT_
 ENUM: TypeAlias = str | _ENUM | ENUM_
 
 
+def APIDATACLASS(cls):
+    def set_attr(s, attr, func, *args):
+        s.__setattr__(
+            attr,
+            func(s.__getattribute__(attr), *args),
+        )
 
-def customDC(cls):
     class _Wrapper(cls):
         __annotations__ = cls.__annotations__
 
         def __post_init__(self):
             for attr, annn in cls.__annotations__.items():
-                if isinstance(annn, type(Union[int, str])):
-                    if ENUM_ in annn.__args__:
-                        self.__setattr__(
-                            attr,
-                            convert_to_enum(self.__getattribute__(attr), annn.__args__[1]),
-                        )
-                    if DATE_ in annn.__args__:
-                        self.__setattr__(
-                            attr,
-                            date_factory(self.__getattribute__(attr)),
-                        )
-                    if OBJECT_ in annn.__args__:
-                        self.__setattr__(
-                            attr,
-                            custom_object_factory(self.__getattribute__(attr), annn.__args__[1]),
-                        )
-                elif isinstance(annn, type(List[int])):
-                    if isinstance(annn.__args__[0], type(Union[int, str])):
+                try:
+                    if (
+                        isinstance(annn, type(Union[int, str]))
+                        and annn.__args__[1] is not types.NoneType
+                    ):
+                        if ENUM_ in annn.__args__:
+                            set_attr(self, attr, convert_to_enum, annn.__args__[1])
+                        elif DATE_ in annn.__args__:
+                            set_attr(self, attr, date_factory)
+                        elif OBJECT_ in annn.__args__:
+                            set_attr(self, attr, custom_object_factory, annn.__args__[1])
+                    elif (
+                        isinstance(annn, type(Union[int, str]))
+                        and annn.__args__[1] is not types.NoneType
+                        and isinstance(annn.__args__[0], type(List[int]))
+                        and isinstance(annn.__args__[0].__args__[0], type(Union[int, str]))
+                    ):
+                        if ENUM_ in annn.__args__[0].__args__[0].__args__:
+                            set_attr(
+                                self,
+                                attr,
+                                convert_to_list_enum,
+                                annn.__args__[0].__args__[0].__args__[1],
+                            )
+                        elif OBJECT_ in annn.__args__[0].__args__[0].__args__:
+                            set_attr(
+                                self,
+                                attr,
+                                custom_list_objects_factory,
+                                annn.__args__[0].__args__[0].__args__[1],
+                            )
+                    elif isinstance(annn, type(List[int])) and isinstance(
+                        annn.__args__[0], type(Union[int, str])
+                    ):
                         if ENUM_ in annn.__args__[0].__args__:
-                            self.__setattr__(
+                            set_attr(
+                                self,
                                 attr,
-                                [convert_to_enum(el, annn.__args__[0].__args__[1]) for el in self.__getattribute__(attr)],
+                                convert_to_list_enum,
+                                annn.__args__[0].__args__[1],
                             )
-                        if OBJECT_ in annn.__args__[0].__args__:
-                            self.__setattr__(
+                        elif OBJECT_ in annn.__args__[0].__args__:
+                            set_attr(
+                                self,
                                 attr,
-                                custom_list_objects_factory(self.__getattribute__(attr), annn.__args__[0].__args__[1]),
+                                custom_list_objects_factory,
+                                annn.__args__[0].__args__[1],
                             )
-        
+                except Exception as e:
+                    raise DataClassException(" ".join((f"Attribute: {attr}, Annotation: {annn}  |>\n" , *e.args)))
+
         def __repr__(self):
-            return super().__repr__().replace("customDC.<locals>._Wrapper(", cls.__name__ + "(")
+            return (
+                super()
+                .__repr__()
+                .replace("APIDATACLASS.<locals>._Wrapper(", cls.__name__ + "(")
+            )
 
     _Wrapper.__name__ = cls.__name__
     _Wrapper.__module__ = cls.__module__
@@ -188,7 +242,7 @@ class PreviewCardType(Enum):
     LINK = "link"
     PHOTO = "photo"
     VIDEO = "video"
-    RICH = "RICH"  #! Not currently accepted, so won’t show up in practice.
+    RICH = "RICH"  # mdoc: Not currently accepted, so won’t show up in practice.
 
 
 class Context(Enum):
@@ -280,7 +334,8 @@ class WarningAction(Enum):
 #     #     if len(ignored) > 0:
 #     #         raise DataClassException(json.dumps(ignored), ignored)
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class Emoji:
     shortcode: str
@@ -289,8 +344,11 @@ class Emoji:
     visible_in_picker: bool
     category: Optional[str] = None
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class Field:
     name: str
@@ -298,10 +356,10 @@ class Field:
     verified_at: Optional[DATETIME] = None
 
     def __post_init__(self):
-        self.verified_at = date_factory(self.verified_at)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class ImageMetaInfos:
     width: int
@@ -309,15 +367,21 @@ class ImageMetaInfos:
     size: str
     aspect: float
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class Focus:
     x: float
     y: float
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class Meta:
     original: API_OBJECT[ImageMetaInfos]
@@ -325,12 +389,10 @@ class Meta:
     focus: Optional[API_OBJECT[Focus]] = None
 
     def __post_init__(self):
-        self.focus = custom_object_factory(self.focus, Focus)
-        self.original = custom_object_factory(self.original, ImageMetaInfos)
-        self.small = custom_object_factory(self.small, ImageMetaInfos)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class Source:
     privacy: ENUM[Visibility]
@@ -341,11 +403,10 @@ class Source:
     follow_requests_count: int
 
     def __post_init__(self):
-        self.privacy = convert_to_enum(self.privacy, Visibility)
-        self.fields = custom_list_objects_factory(self.fields)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class Role:
     id: ID
@@ -354,8 +415,11 @@ class Role:
     color: str
     highlighted: bool
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class Account:
     id: ID
@@ -378,7 +442,7 @@ class Account:
     following_count: int
     last_status_at: Optional[DATETIME] = None
     noindex: Optional[bool] = None
-    moved: Optional[API_OBJECT[Self]] = None
+    moved: Optional[API_OBJECT["Status"]] = None
     suspended: Optional[bool] = None
     limited: Optional[bool] = None
     group: Optional[bool] = None
@@ -393,17 +457,10 @@ class Account:
     roles: Optional[List[API_OBJECT[Role]]] = None
 
     def __post_init__(self):
-        self.fields = custom_list_objects_factory(self.fields, Field)
-        self.emojis = custom_list_objects_factory(self.emojis, Emoji)
-        self.created_at = date_factory(self.created_at)
-        self.last_status_at = date_factory(self.last_status_at)
-        self.moved = custom_object_factory(self.moved, Account)
-        self.source = custom_object_factory(self.source, Source)
-        self.role = custom_object_factory(self.role, Role)
-        self.mute_expires_at = date_factory(self.mute_expires_at)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class Application:
     name: str
@@ -418,8 +475,11 @@ class Application:
         None  # '' #? 0 (added on 4.3.0))
     )
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class Mention:
     id: ID
@@ -427,15 +487,21 @@ class Mention:
     url: URL
     acct: str
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class Tag:
     name: str
     url: URL
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class MediaAttachment:
     id: ID
@@ -450,18 +516,20 @@ class MediaAttachment:
     blurhash: Optional[str] = None
 
     def __post_init__(self):
-        self.type = convert_to_enum(self.type, MediaType)
-        self.meta = custom_object_factory(self.meta, Meta)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class Poll_Option:
     title: str
     votes_count: Optional[int]
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class Poll:
     id: ID
@@ -475,12 +543,21 @@ class Poll:
     voted: Optional[bool] = None
 
     def __post_init__(self):
-        self.expires_at = date_factory(self.expires_at)
-        self.options = custom_list_objects_factory(self.options, Poll_Option)
-        self.emojis = custom_list_objects_factory(self.emojis, Emoji)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
+@dataclass(order=True)
+class PreviewCardAuthor:
+    name: str
+    url: URL
+    account: Optional[API_OBJECT[Account]] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
 @dataclass(order=True)
 class PreviewCard:
     url: URL
@@ -495,49 +572,57 @@ class PreviewCard:
     width: int
     height: int
     embed_url: URL
+    authors: Optional[List[PreviewCardAuthor]] = None
     image: Optional[str] = None
     blurhash: Optional[str] = None
+    language: Optional[str] = None
 
     def __post_init__(self):
-        self.type = convert_to_enum(self.type, PreviewCardType)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class Quote:
     state: ENUM[QuoteState]
     status: Optional[API_OBJECT["Status"]] = None
 
     def __post_init__(self):
-        self.state = convert_to_enum(self.state, QuoteState)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class ShallowQuote:
     state: ENUM[QuoteState]
     status_id: Optional[ID] = None
 
     def __post_init__(self):
-        self.state = convert_to_enum(self.state, QuoteState)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class FilterKeyword:
     id: ID
     keyword: str
     whole_word: bool
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class FilterStatus:
     id: ID
     status_id: ID
 
+    def __post_init__(self):
+        super().__post_init__()
 
-@customDC
+
+@APIDATACLASS
 @dataclass(order=True)
 class Filter:
     id: ID
@@ -549,14 +634,10 @@ class Filter:
     statuses: List[FilterStatus]
 
     def __post_init__(self):
-        self.context = [convert_to_enum(el, Context) for el in self.context]
-        self.filter_action = convert_to_enum(self.filter_action, FilterAction)
-        self.expires_at = date_factory(self.expires_at)
-        self.keywords = custom_list_objects_factory(self.keywords, FilterKeyword)
-        self.statuses = custom_list_objects_factory(self.statuses, FilterStatus)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class FilterResult:
     filter: Filter
@@ -564,10 +645,10 @@ class FilterResult:
     status_matches: Optional[List[str]]
 
     def __post_init__(self):
-        self.filter = custom_object_factory(self.filter, Filter)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass(order=True)
 class Status:
     id: ID
@@ -604,24 +685,10 @@ class Status:
     quote: Optional[API_OBJECT[Quote | ShallowQuote]] = None
 
     def __post_init__(self):
-        self.visibility = convert_to_enum(self.visibility, Visibility)
-        self.created_at = date_factory(self.created_at)
-        self.account = custom_object_factory(self.account, Account)
-        self.media_attachments = custom_list_objects_factory(
-            self.media_attachments, MediaAttachment
-        )
-        self.application = custom_object_factory(self.application, Application)
-        self.mentions = custom_list_objects_factory(self.mentions, Mention)
-        self.tags = custom_list_objects_factory(self.tags, Tag)
-        self.emojis = custom_list_objects_factory(self.emojis, Emoji)
-        self.poll = custom_object_factory(self.poll, Poll)
-        self.card = custom_object_factory(self.card, PreviewCard)
-        self.edited_at = date_factory(self.edited_at)
-        self.filtered = custom_list_objects_factory(self.filtered, FilterResult)
-        self.quote = custom_object_factory(self.quote, (Quote, ShallowQuote))
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass
 class Report:
     id: ID
@@ -636,13 +703,10 @@ class Report:
     target_account: API_OBJECT[Account]
 
     def __post_init__(self):
-        self.action_taken_at = date_factory(self.action_taken_at)
-        self.category = custom_object_factory(self.category, ReportCategory)
-        self.created_at = date_factory(self.created_at)
-        self.target_account = custom_object_factory(self.target_account, Account)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass
 class RelationshipSeveranceEvent:
     id: ID
@@ -654,22 +718,21 @@ class RelationshipSeveranceEvent:
     created_at: DATETIME
 
     def __post_init__(self):
-        self.type = convert_to_enum(self.type, RelationshipSeveranceEventType)
-        self.created_at = date_factory(self.created_at)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass
 class Appeal:
     text: str
     state: ENUM[AppealState]
 
     def __post_init__(self):
-        self.state = convert_to_enum(self.state, AppealState)
+        super().__post_init__()
 
 
-@customDC
-@customDC
+@APIDATACLASS
+@APIDATACLASS
 @dataclass
 class AccountWarning:
     id: ID
@@ -681,12 +744,10 @@ class AccountWarning:
     created_at: DATETIME
 
     def __post_init__(self):
-        self.action = convert_to_enum(self.action, WarningAction)
-        self.appeal = custom_object_factory(self.appeal, Appeal)
-        self.created_at = date_factory(self.created_at)
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass
 class Notification:
     id: ID
@@ -700,18 +761,10 @@ class Notification:
     moderation_warning: Optional[API_OBJECT[AccountWarning]] = None
 
     def __post_init__(self):
-        self.type = convert_to_enum(self.type, NotificationType)
-        self.created_at = date_factory(self.created_at)
-        self.account = custom_object_factory(self.account, Account)
-        self.report = custom_object_factory(self.report, Report)
-        self.event = custom_object_factory(self.event, RelationshipSeveranceEvent)
-        self.status = custom_object_factory(self.status, Status)
-        self.moderation_warning = custom_object_factory(
-            self.moderation_warning, AccountWarning
-        )
+        super().__post_init__()
 
 
-@customDC
+@APIDATACLASS
 @dataclass
 class Marker:
     last_read_id: ID
@@ -719,4 +772,4 @@ class Marker:
     updated_at: DATETIME
 
     def __post_init__(self):
-        self.updated_at = date_factory(self.updated_at)
+        super().__post_init__()

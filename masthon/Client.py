@@ -477,7 +477,7 @@ class Client:
     @LOG()
     def get_marker(
         self, timeline: Iterable[TimelineType], **kwargs
-    ) -> Dict[TimelineType, Marker]:
+    ) -> Dict[Type[TimelineType], Marker]:
         """Gets the last marker generated of given timelines
 
         Args:
@@ -501,7 +501,7 @@ class Client:
     @LOG()
     def post_marker(
         self, timelines: Dict[str, str], **kwargs
-    ) -> Dict[TimelineType, Marker]:
+    ) -> Dict[Type[TimelineType], Marker]:
         """Post and generate markers of given ids
 
         Args:
