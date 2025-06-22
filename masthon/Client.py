@@ -4,12 +4,11 @@ The client !
 
 from typing import Any, Dict, Callable, IO, Tuple, Optional, Literal, Set, Iterable
 
+import threading as tg
+
 from .Exceptions import *
 from .utils import *
 from .DataClasses import *
-from .DataClasses import (
-    _convert_to_enum,
-)  #! Mypy doesn't know the name if not written like this
 from .Events import Listeners
 
 import re
@@ -19,8 +18,8 @@ import requests, json
 import traceback
 
 
-TOKEN_FORMAT = re.compile(r"^[A-Za-z0-9\-_]{43}$")
-SERVER_FORMAT = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$")
+TOKEN_FORMAT: re.Pattern = re.compile(r"^[A-Za-z0-9\-_]{43}$")
+SERVER_FORMAT: re.Pattern = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$")
 
 
 class Client:
@@ -33,6 +32,7 @@ class Client:
         token: str,
         server: str = "https://mastodon.social",
         *,
+        async_level: int = 0,
         used_events: Optional[Event | Tuple[Event]] = None,
         event_reactivity: int = 15,
     ) -> None:
@@ -99,6 +99,13 @@ class Client:
         }
         self.cli_last_error: Optional[Exception] = None
 
+        if not (0 <= async_level <= 2):
+            print("\033[1m\033[91m[WARN]\033[93m Async level unknown >\033[0m default set to 0") 
+            async_level = 0
+        self._async_level = async_level
+
+        self.process: List[tg.Thread] = list()
+
         self.RUNNING = False
 
     def __repr__(self) -> str:
@@ -121,31 +128,92 @@ class Client:
         if not isinstance(self.epoch, float):
             raise MasthonException("Loop not started, impossible to execute one step.")
         
+        # process list initialisation
+        match self._async_level:
+            case 0:
+                pass # not used
+            case 1:
+                self.process.clear() # cleared because all process down
+            case 2:
+                for i, p in enumerate(self.process):
+                    if not p.is_alive():
+                        del self.process[i] # juste delete process down and let other run
+        self.process = list()
+
         # Sheduled functions (executed one time)
         executed = list()
         for func, time_after in self.scheduled.items():
             if time.time() - self.epoch >= time_after:
-                func(self)
+                match self._async_level:
+                    case 0:
+                        func(self)
+                    case 1:
+                        self.process.append(tg.Thread(target=func, args=(self,)))
+                        self.process[-1].start()
+                    case 2:
+                        self.process.append(tg.Thread(target=func, args=(self,)))
+                        self.process[-1].start()
                 executed.append(func)
         for f in executed:
             del self.scheduled[f]
+
         # Looped functions (every `loop_time`)
         for loop_time, flist in self.funcs.items():
             for j, (last, func) in enumerate(flist):
                 if last - time.time() <= -loop_time:
-                    func(self)
+                    match self._async_level:
+                        case 0:
+                            func(self)
+                        case 1:
+                            self.process.append(tg.Thread(target=func, args=(self,)))
+                            self.process[-1].start()
+                        case 2:
+                            self.process.append(tg.Thread(target=func, args=(self,)))
+                            self.process[-1].start()
                     self.funcs[loop_time][j] = time.time(), func
+
         # Event handling
         if (
             self.event_reactivity > 0
             and time.time() - self.last_listened >= self.event_reactivity
         ):
-            self.last_listened = time.time()
-            for event, funcs in self.activated_listeners.items():
-                out = self.listeners.listen_for(event)
-                if out.status == EventStatus.TRIGGERED:
-                    for func in funcs:
-                        func(self, out.data)
+            match self._async_level:
+                case 0:
+                    self.event_handling()
+                case 1:
+                    self.process.append(tg.Thread(target=self.event_handling))
+                    self.process[-1].start()
+                case 2:
+                    self.process.append(tg.Thread(target=self.event_handling))
+                    self.process[-1].start()
+
+        # End
+        match self._async_level:
+            case 0:
+                pass
+            case 1:
+                # Join all process
+                for p in self.process:
+                    p.join()
+            case 2:
+                pass
+
+    def event_handling(self) -> None:
+        self.last_listened = time.time()
+        for event, funcs in self.activated_listeners.items():
+            #! Not async but entire method is, and we need results
+            out = self.listeners.listen_for(event)
+            if out.status == EventStatus.TRIGGERED:
+                for func in funcs:
+                    match self._async_level:
+                        case 0:
+                            func(self, out.data)
+                        case 1:
+                            self.process.append(tg.Thread(target=func, args=(self, out.data)))
+                            self.process[-1].start()
+                        case 2:
+                            self.process.append(tg.Thread(target=func, args=(self, out.data)))
+                            self.process[-1].start()
 
     def run(self) -> None:
         """Run the mainloop.
@@ -409,7 +477,7 @@ class Client:
     @LOG()
     def get_marker(
         self, timeline: Iterable[TimelineType], **kwargs
-    ) -> Dict[TimelineType, Marker]:
+    ) -> Dict[Type[TimelineType], Marker]:
         """Gets the last marker generated of given timelines
 
         Args:
@@ -426,14 +494,14 @@ class Client:
             **kwargs,
         )
         return {
-            _convert_to_enum(t, TimelineType): Marker(**el)
+            convert_to_enum(t, TimelineType): Marker(**el)
             for t, el in response.json().items()
         }
 
     @LOG()
     def post_marker(
         self, timelines: Dict[str, str], **kwargs
-    ) -> Dict[TimelineType, Marker]:
+    ) -> Dict[Type[TimelineType], Marker]:
         """Post and generate markers of given ids
 
         Args:
@@ -452,7 +520,7 @@ class Client:
             **kwargs,
         )
         return {
-            _convert_to_enum(t, TimelineType): Marker(**el)
+            convert_to_enum(t, TimelineType): Marker(**el)
             for t, el in response.json().items()
         }
 

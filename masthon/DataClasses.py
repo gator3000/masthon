@@ -2,9 +2,24 @@
 Some classes representing API objects here ! (And enums needed to use the package well)
 """
 
-from typing import List, Optional, Dict, Any, Union, Self
+# from __future__ import annotations
+from typing import (
+    List,
+    Optional,
+    Dict,
+    Any,
+    Union,
+    Self,
+    Iterable,
+    TypeAlias,
+    Generic,
+    TypeVar,
+    Type,
+    TYPE_CHECKING,
+)
+import types
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, EnumType
 from datetime import datetime
 
 import json
@@ -12,7 +27,7 @@ import json
 from .Exceptions import DataClassException
 
 
-def _date_factory(arg: str | datetime) -> datetime:
+def date_factory(arg: str | datetime) -> Optional[datetime]:
     return (
         arg
         if isinstance(arg, datetime)
@@ -24,401 +39,153 @@ def _date_factory(arg: str | datetime) -> datetime:
     )
 
 
-def _custom_object_factory(arg: Any, Type) -> Any:
-    if isinstance(arg, Type) or arg is None:
+def date_list_factory(arg: List[str | datetime]) -> List[Optional[datetime]]:
+    return [date_factory(element) for element in arg]
+
+
+TYPE_TVAR = TypeVar("TYPE_TVAR", bound=Type)
+ENUM_TVAR = TypeVar("ENUM_TVAR", bound=EnumType)
+
+
+def custom_object_factory(arg: Any, Type: TYPE_TVAR) -> Optional[TYPE_TVAR]:
+    if arg is None:
+        return None
+    elif isinstance(Type, str):
+        return globals()[Type](**arg)
+    elif isinstance(arg, Type):
         return arg
     else:
-        return Type(**arg)
+        if not isinstance(Type, (tuple, type(Union[int, str]))):
+            return Type(**arg)
+        else:
+            Types: tuple
+            if isinstance(Type, tuple):
+                Types = Type
+            elif isinstance(Type, str):
+                Types = Type
+            else:
+                if not TYPE_CHECKING:  # Mypy stop, #! Please let it here
+                    Types = Type.__args__  # ? He does'nt love this statement
+            for CType in Types:
+                try:
+                    return CType(**arg)
+                except TypeError:
+                    continue
+            raise TypeError
 
 
-def _custom_list_objects_factory(arg: Any, Type) -> Any:
-    if len(arg) < 1 or isinstance(arg[0], Type):
-        return arg
-    else:
-        return [Type(**element) for element in arg]
+def custom_list_objects_factory(arg: Any, Type: TYPE_TVAR) -> List[Optional[TYPE_TVAR]]:
+    return [custom_object_factory(element, Type) for element in arg]
 
 
-def _convert_to_enum(arg: Any, enum: Any) -> Any:
-    for el in enum:
-        if el.value == arg:
-            return el
-    raise ValueError(f"`{arg}` is not a value of enum `{enum}`")
+def convert_to_enum(arg: Any, Enum_: ENUM_TVAR) -> ENUM_TVAR:
+    if not TYPE_CHECKING:
+        return Enum_(arg)
+    raise Exception("Mypy CRAP")
 
 
-# # ! Already deprecated, need big rework and fixes, instead use @dataclass
-# class DataClass:
-#     """:)"""
-
-#     def __repr__(self) -> str:
-#         args = ", ".join(
-#             [
-#                 str(attr) + "=" + repr(self.__getattribute__(attr))
-#                 for attr in self
-#             ]
-#         )
-#         if len(args) > 76:
-#             return f"""{self.__class__.__name__}({args[:40] + " ... " + args[-10:]})"""
-#         else:
-#             return f"""{self.__class__.__name__}({args})"""
-
-#     # # TODO: Complete that
-#     # #! Not working yet
-#     # def __set(self, **kwargs):
-#     #     ignored = {}
-#     #     ann = self.__init__.__annotations__
-#     #     self.__slots__ = frozenset()
-#     #     for k, v in kwargs:
-#     #         if k not in self.__annotations__.keys():
-#     #             ignored[k] = v
-#     #         else:
-#     #             self.__slots__ += frozenset(k)
-#     #             try:
-#     #                 if isinstance(v, ann[k]):
-#     #                     setattr(self, k, v)
-#     #             except TypeError as e:
-#     #                 if e.args.startswith("Subscripted "):  # typing
-#     #                     pass
-#     #                 else:
-#     #                     raise e
-#     #     if len(ignored) > 0:
-#     #         raise DataClassException(json.dumps(ignored), ignored)
+def convert_to_list_enum(arg: Any, Enum: ENUM_TVAR) -> List[ENUM_TVAR]:
+    return [convert_to_enum(element, Enum) for element in arg]
 
 
-@dataclass(order=True)
-class Emoji:
-    shortcode: str
-    url: str
-    static_url: str
-    visible_in_picker: bool
+class __DETECTOR_CLS: ...
 
 
-@dataclass(order=True)
-class Field:
-    name: str
-    value: str
-    verified_at: Optional[str | datetime] = None
-
-    def __post_init__(self):
-        self.verified_at = _date_factory(self.verified_at)
+class DATE_(__DETECTOR_CLS): ...
 
 
-@dataclass(order=True)
-class ImageMetaInfos:
-    width: int
-    height: int
-    size: str
-    aspect: float
+class OBJECT_(__DETECTOR_CLS): ...
 
 
-@dataclass(order=True)
-class Focus:
-    x: float
-    y: float
+class ENUM_(__DETECTOR_CLS): ...
 
 
-@dataclass(order=True)
-class Meta:
-    original: Dict[str, Any] | ImageMetaInfos
-    small: Dict[str, Any] | ImageMetaInfos
-    focus: Optional[Dict[str, float] | Focus] = None
+ID: TypeAlias = str
+URL: TypeAlias = str
+DATETIME: TypeAlias = str | datetime | DATE_
 
-    def __post_init__(self):
-        self.focus = _custom_object_factory(self.focus, Focus)
-        self.original = _custom_object_factory(self.original, ImageMetaInfos)
-        self.small = _custom_object_factory(self.small, ImageMetaInfos)
+_APIO0 = TypeVar("_APIO0")
+_ENUM = TypeVar("_ENUM")
+API_OBJECT: TypeAlias = Dict[str, Any] | _APIO0 | OBJECT_
+ENUM: TypeAlias = str | _ENUM | ENUM_
 
 
-@dataclass(order=True)
-class Source:
-    privacy: str
-    sensitive: bool
-    language: str
-    note: str
-    fields: List[Dict[str, Any] | Field]
-    follow_requests_count: int
-
-    def __post_init__(self):
-        self.fields = _custom_list_objects_factory(self.fields)
-
-
-@dataclass(order=True)
-class Role:
-    id: str
-    name: str
-    permissions: str
-    color: str
-    highlighted: bool
-
-
-@dataclass(order=True)
-class Account:
-    id: str
-    username: str
-    acct: str
-    url: str
-    display_name: str
-    note: str
-    avatar: str
-    avatar_static: str
-    header: str
-    header_static: str
-    locked: bool
-    fields: List[Dict[str, Any] | Field]
-    emojis: List[Dict[str, Any] | Emoji]
-    bot: bool
-    created_at: str | datetime
-    statuses_count: int
-    followers_count: int
-    following_count: int
-    last_status_at: Optional[str | datetime] = None
-    noindex: Optional[bool] = None
-    moved: Optional[Dict[str, Any] | Self] = None
-    suspended: Optional[bool] = None
-    limited: Optional[bool] = None
-    group: Optional[bool] = None
-    discoverable: Optional[bool] = None
-    attribution_domains: Optional[List[str]] = None
-    source: Optional[Dict[str, Any] | Source] = None
-    role: Optional[Dict[str, Any] | Role] = None
-    mute_expires_at: Optional[str | datetime] = None
-    indexable: Optional[bool] = None
-    uri: Optional[str] = None
-    hide_collections: Optional[bool] = None
-    roles: Optional[List[Dict[str, Any] | Role]] = None
-
-    def __post_init__(self):
-        self.fields = _custom_list_objects_factory(self.fields, Field)
-        self.emojis = _custom_list_objects_factory(self.emojis, Emoji)
-        self.created_at = _date_factory(self.created_at)
-        self.last_status_at = _date_factory(self.last_status_at)
-        self.moved = _custom_object_factory(self.moved, Account)
-        self.source = _custom_object_factory(self.source, Source)
-        self.role = _custom_object_factory(self.role, Role)
-        self.mute_expires_at = _date_factory(self.mute_expires_at)
-
-
-@dataclass(order=True)
-class Application:
-    name: str
-    website: Optional[str] = None
-
-
-@dataclass(order=True)
-class Mention:
-    id: str
-    username: str
-    url: str
-    acct: str
-
-
-@dataclass(order=True)
-class Tag:
-    name: str
-    url: str
-
-
-@dataclass(order=True)
-class MediaAttachment:
-    id: str
-    type: str
-    url: str
-    preview_url: str
-    preview_remote_url: str
-    meta: Dict[str, Any] | Meta
-    text_url: Optional[str] = None
-    remote_url: Optional[str] = None
-    description: Optional[str] = None
-    blurhash: Optional[str] = None
-
-    def __post_init__(self):
-        self.meta = _custom_object_factory(self.meta, Meta)
-
-@dataclass(order=True)
-class Poll_Option:
-    title: str
-    votes_count: Optional[int]
-
-@dataclass(order=True)
-class Poll:
-    id: str
-    expires_at: str | datetime
-    expired: bool
-    multiple: bool
-    votes_count: int
-    voters_count: int
-    options: List[Dict[str, Any] | Poll_Option]
-    emojis: List[Dict[str, Any] | Emoji]
-    voted: Optional[bool] = None
-
-    def __post_init__(self):
-        self.expires_at = _date_factory(self.expires_at)
-        self.options = _custom_list_objects_factory(self.options, Poll_Option)
-        self.emojis = _custom_list_objects_factory(self.emojis, Emoji)
-
-
-@dataclass(order=True)
-class PreviewCard:
-    url: str
-    title: str
-    description: str
-    type: str
-    author_name: str
-    author_url: str
-    provider_name: str
-    provider_url: str
-    html: str
-    width: int
-    height: int
-    embed_url: str
-    image: Optional[str] = None
-    blurhash: Optional[str] = None
-
-
-@dataclass(order=True)
-class Quote:
-    state: str
-    status: Optional[Dict[str, Any] | "Status"] = None
-
-
-@dataclass(order=True)
-class Status:
-    id: str
-    uri: str
-    created_at: str | datetime
-    account: Account | Dict[str, Any]
-    content: str
-    visibility: str
-    sensitive: bool
-    spoiler_text: str
-    media_attachments: List[Dict[str, Any] | MediaAttachment]
-    mentions: List[Dict[str, Any] | Mention]
-    tags: List[Dict[str, Any] | Tag]
-    emojis: List[Dict[str, Any] | Emoji]
-    reblogs_count: int
-    favourites_count: int
-    replies_count: int
-    application: Optional[Dict[str, Any] | Application] = None
-    url: Optional[str] = None
-    in_reply_to_id: Optional[str] = None
-    in_reply_to_account_id: Optional[str] = None
-    reblog: Optional["Status"] = None
-    poll: Optional[Dict[str, Any] | Poll] = None
-    card: Optional[Dict[str, Any] | PreviewCard] = None
-    language: Optional[str] = None
-    text: Optional[str] = None
-    edited_at: Optional[str] = None
-    favourited: Optional[bool] = None
-    reblogged: Optional[bool] = None
-    muted: Optional[bool] = None
-    bookmarked: Optional[bool] = None
-    pinned: Optional[bool] = None
-    filtered: Optional[List[Dict[str, Any]]] = None # TODO: /!\ ADD Support for theses objects
-    quote: Optional[Quote] = None
-
-    def __post_init__(self):
-        self.created_at = _date_factory(self.created_at)
-        self.account = _custom_object_factory(self.account, Account)
-        self.media_attachments = _custom_list_objects_factory(
-            self.media_attachments, MediaAttachment
-        )
-        self.application = _custom_object_factory(self.application, Application)
-        self.mentions = _custom_list_objects_factory(self.mentions, Mention)
-        self.tags = _custom_list_objects_factory(self.tags, Tag)
-        self.emojis = _custom_list_objects_factory(self.emojis, Emoji)
-        self.poll = _custom_object_factory(self.poll, Poll)
-        self.card = _custom_object_factory(self.card, PreviewCard)
-        self.edited_at = _date_factory(self.edited_at)
-
-
-@dataclass
-class Report:
-    id: str
-    action_taken: bool
-    action_taken_at: Optional[str | datetime]
-    category: str
-    comment: str
-    forwarded: bool
-    created_at: str | datetime
-    status_ids: Optional[List[str]]
-    rule_ids: Optional[List[str]]
-    target_account: Dict[str, Any] | Account
-
-    def __post_init__(self):
-        self.action_taken_at = _date_factory(self.action_taken_at)
-        self.created_at = _date_factory(self.created_at)
-        self.target_account = _custom_object_factory(self.target_account, Account)
-
-
-@dataclass
-class RelationshipSeveranceEvent:
-    id: str
-    type: str
-    purged: bool
-    target_name: str
-    followers_count: int
-    following_count: int
-    created_at: str | datetime
-
-    def __post_init__(self):
-        self.created_at = _date_factory(self.created_at)
-
-
-@dataclass
-class Appeal:
-    text: str
-    state: str
-
-
-@dataclass
-class AccountWarning:
-    id: str
-    action: str
-    text: str
-    status_ids: Optional[List[str]]
-    target_account: Dict[str, Any] | Account
-    appeal: Optional[Dict[str, Any] | Appeal]
-    created_at: str | datetime
-
-    def __post_init__(self):
-        self.appeal = _custom_object_factory(self.appeal, Appeal)
-        self.created_at = _date_factory(self.created_at)
-
-
-@dataclass
-class Notification:
-    id: str
-    type: str
-    group_key: str
-    created_at: str | datetime
-    account: Dict[str, Any] | Account
-    status: Optional[Dict[str, Any] | Status] = None
-    report: Optional[Dict[str, Any] | Report] = None
-    event: Optional[Dict[str, Any] | RelationshipSeveranceEvent] = None
-    moderation_warning: Optional[Dict[str, Any] | AccountWarning] = None
-
-    def __post_init__(self):
-        self.type = _convert_to_enum(self.type, NotificationType)
-        self.created_at = _date_factory(self.created_at)
-        self.account = _custom_object_factory(self.account, Account)
-        self.report = _custom_object_factory(self.report, Report)
-        self.event = _custom_object_factory(self.event, RelationshipSeveranceEvent)
-        self.status = _custom_object_factory(self.status, Status)
-        self.moderation_warning = _custom_object_factory(
-            self.moderation_warning, AccountWarning
+def APIDATACLASS(cls):
+    def set_attr(s, attr, func, *args):
+        s.__setattr__(
+            attr,
+            func(s.__getattribute__(attr), *args),
         )
 
-@dataclass
-class Marker:
-    last_read_id: str
-    version: int
-    updated_at: str | datetime
+    class _Wrapper(cls):
+        __annotations__ = cls.__annotations__
 
-    def __post_init__(self):
-        self.updated_at = _date_factory(self.updated_at)
+        def __post_init__(self):
+            for attr, annn in cls.__annotations__.items():
+                try:
+                    if (
+                        isinstance(annn, type(Union[int, str]))
+                        and annn.__args__[1] is not types.NoneType
+                    ):
+                        if ENUM_ in annn.__args__:
+                            set_attr(self, attr, convert_to_enum, annn.__args__[1])
+                        elif DATE_ in annn.__args__:
+                            set_attr(self, attr, date_factory)
+                        elif OBJECT_ in annn.__args__:
+                            set_attr(self, attr, custom_object_factory, annn.__args__[1])
+                    elif (
+                        isinstance(annn, type(Union[int, str]))
+                        and annn.__args__[1] is not types.NoneType
+                        and isinstance(annn.__args__[0], type(List[int]))
+                        and isinstance(annn.__args__[0].__args__[0], type(Union[int, str]))
+                    ):
+                        if ENUM_ in annn.__args__[0].__args__[0].__args__:
+                            set_attr(
+                                self,
+                                attr,
+                                convert_to_list_enum,
+                                annn.__args__[0].__args__[0].__args__[1],
+                            )
+                        elif OBJECT_ in annn.__args__[0].__args__[0].__args__:
+                            set_attr(
+                                self,
+                                attr,
+                                custom_list_objects_factory,
+                                annn.__args__[0].__args__[0].__args__[1],
+                            )
+                    elif isinstance(annn, type(List[int])) and isinstance(
+                        annn.__args__[0], type(Union[int, str])
+                    ):
+                        if ENUM_ in annn.__args__[0].__args__:
+                            set_attr(
+                                self,
+                                attr,
+                                convert_to_list_enum,
+                                annn.__args__[0].__args__[1],
+                            )
+                        elif OBJECT_ in annn.__args__[0].__args__:
+                            set_attr(
+                                self,
+                                attr,
+                                custom_list_objects_factory,
+                                annn.__args__[0].__args__[1],
+                            )
+                except Exception as e:
+                    raise DataClassException(" ".join((f"Attribute: {attr}, Annotation: {annn}  |>\n" , *e.args)))
+
+        def __repr__(self):
+            return (
+                super()
+                .__repr__()
+                .replace("APIDATACLASS.<locals>._Wrapper(", cls.__name__ + "(")
+            )
+
+    _Wrapper.__name__ = cls.__name__
+    _Wrapper.__module__ = cls.__module__
+    return _Wrapper
+
 
 # Enums
-
-
 class RequestMethod(Enum):
     GET = "get"
     POST = "post"
@@ -457,6 +224,516 @@ class NotificationType(Enum):
     ADMIN_SIGN_UP = "admin.sign_up"
     ADMIN_REPORT = "admin.report"
 
+
 class TimelineType(Enum):
     HOME = "home"
     NOTIFICATIONS = "notifications"
+
+
+class MediaType(Enum):
+    UNKNOWN = "unknown"
+    IMAGE = "image"
+    GIFV = "gifv"
+    VIDEO = "video"
+    AUDIO = "audio"
+
+
+class PreviewCardType(Enum):
+    LINK = "link"
+    PHOTO = "photo"
+    VIDEO = "video"
+    RICH = "RICH"  # mdoc: Not currently accepted, so won’t show up in practice.
+
+
+class Context(Enum):
+    HOME = "home"
+    NOTIFICATIONS = "notifications"
+    PUBLIC = "public"
+    THREAD = "thread"
+    ACCOUNT = "account"
+
+
+class FilterAction(Enum):
+    WARN = "warn"
+    HIDE = "hide"
+    BLUR = "blur"
+
+
+class QuoteState(Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    REVOKED = "revoked"
+    DELETED = "deleted"
+    UNAUTHORIZED = "unauthorized"
+
+
+class ReportCategory(Enum):
+    SPAM = "spam"
+    VIOLATION = "violation"
+    OTHER = "other"
+
+
+class RelationshipSeveranceEventType(Enum):
+    DOMAIN_BLOCK = "domain_block"
+    USER_DOMAIN_BLOCK = "user_domain_block"
+    ACCOUNT_SUSPENSION = "account_suspension"
+
+
+class AppealState(Enum):
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    PENDING = "pending"
+
+
+class WarningAction(Enum):
+    NONE = "none"
+    DISABLE = "disable"
+    MARK_STATUSES_AS_SENSITIVE = "mark_statuses_as_sensitive"
+    DELETE_STATUSES = "delete_statuses"
+    SENSITIVE = "sensitive"
+    SILENCE = "silence"
+    SUSPEND = "suspend"
+
+
+
+#DATACLASSES
+
+@APIDATACLASS
+@dataclass(order=True)
+class Emoji:
+    shortcode: str
+    url: URL
+    static_url: URL
+    visible_in_picker: bool
+    category: Optional[str] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Field:
+    name: str
+    value: str
+    verified_at: Optional[DATETIME] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class ImageMetaInfos:
+    width: int
+    height: int
+    size: str
+    aspect: float
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Focus:
+    x: float
+    y: float
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Meta:
+    original: API_OBJECT[ImageMetaInfos]
+    small: API_OBJECT[ImageMetaInfos]
+    focus: Optional[API_OBJECT[Focus]] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Source:
+    privacy: ENUM[Visibility]
+    sensitive: bool
+    language: str
+    note: str
+    fields: List[API_OBJECT[Field]]
+    follow_requests_count: int
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Role:
+    id: ID
+    name: str
+    permissions: str
+    color: str
+    highlighted: bool
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Account:
+    id: ID
+    username: str
+    acct: str
+    url: URL
+    display_name: str
+    note: str
+    avatar: URL
+    avatar_static: URL
+    header: URL
+    header_static: URL
+    locked: bool
+    fields: List[API_OBJECT[Field]]
+    emojis: List[API_OBJECT[Emoji]]
+    bot: bool
+    created_at: DATETIME
+    statuses_count: int
+    followers_count: int
+    following_count: int
+    last_status_at: Optional[DATETIME] = None
+    noindex: Optional[bool] = None
+    moved: Optional[API_OBJECT["Status"]] = None
+    suspended: Optional[bool] = None
+    limited: Optional[bool] = None
+    group: Optional[bool] = None
+    discoverable: Optional[bool] = None
+    attribution_domains: Optional[List[URL]] = None
+    source: Optional[API_OBJECT[Source]] = None
+    role: Optional[API_OBJECT[Role]] = None
+    mute_expires_at: Optional[DATETIME] = None
+    indexable: Optional[bool] = None
+    uri: Optional[URL] = None
+    hide_collections: Optional[bool] = None
+    roles: Optional[List[API_OBJECT[Role]]] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Application:
+    name: str
+    scopes: Optional[List[str]] = None
+    redirect_uris: Optional[List[URL]] = None
+    website: Optional[URL] = None
+    redirect_uri: Optional[URL] = None  #! deprecated
+    vapid_key: Optional[str] = None  #! deprecated
+    client_id: Optional[ID] = None  # from Credential app object
+    client_secret: Optional[str] = None  # ''
+    client_secret_expires_at: Optional[DATETIME | int] = (
+        None  # '' #? 0 (added on 4.3.0))
+    )
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Mention:
+    id: ID
+    username: str
+    url: URL
+    acct: str
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Tag:
+    name: str
+    url: URL
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class MediaAttachment:
+    id: ID
+    type: ENUM[MediaType]
+    url: URL
+    preview_url: URL
+    preview_remote_url: URL
+    meta: API_OBJECT[Meta]
+    text_url: Optional[URL] = None
+    remote_url: Optional[URL] = None
+    description: Optional[str] = None
+    blurhash: Optional[str] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Poll_Option:
+    title: str
+    votes_count: Optional[int]
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Poll:
+    id: ID
+    expires_at: DATETIME
+    expired: bool
+    multiple: bool
+    votes_count: int
+    voters_count: int
+    options: List[API_OBJECT[Poll_Option]]
+    emojis: List[API_OBJECT[Emoji]]
+    voted: Optional[bool] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class PreviewCardAuthor:
+    name: str
+    url: URL
+    account: Optional[API_OBJECT[Account]] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class PreviewCard:
+    url: URL
+    title: str
+    description: str
+    type: ENUM[PreviewCardType]
+    author_name: str
+    author_url: URL
+    provider_name: str
+    provider_url: URL
+    html: str
+    width: int
+    height: int
+    embed_url: URL
+    authors: Optional[List[PreviewCardAuthor]] = None
+    image: Optional[str] = None
+    blurhash: Optional[str] = None
+    language: Optional[str] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Quote:
+    state: ENUM[QuoteState]
+    status: Optional[API_OBJECT["Status"]] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class ShallowQuote:
+    state: ENUM[QuoteState]
+    status_id: Optional[ID] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class FilterKeyword:
+    id: ID
+    keyword: str
+    whole_word: bool
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class FilterStatus:
+    id: ID
+    status_id: ID
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Filter:
+    id: ID
+    title: str
+    context: List[ENUM[Context]]
+    expires_at: Optional[DATETIME]
+    filter_action: ENUM[FilterAction]
+    keywords: List[FilterKeyword]
+    statuses: List[FilterStatus]
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class FilterResult:
+    filter: Filter
+    keyword_matches: Optional[List[str]]
+    status_matches: Optional[List[str]]
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass(order=True)
+class Status:
+    id: ID
+    uri: URL
+    created_at: DATETIME
+    account: API_OBJECT[Account]
+    content: str
+    visibility: ENUM[Visibility]
+    sensitive: bool
+    spoiler_text: str
+    media_attachments: List[API_OBJECT[MediaAttachment]]
+    mentions: List[API_OBJECT[Mention]]
+    tags: List[API_OBJECT[Tag]]
+    emojis: List[API_OBJECT[Emoji]]
+    reblogs_count: int
+    favourites_count: int
+    replies_count: int
+    application: Optional[API_OBJECT[Application]] = None
+    url: Optional[URL] = None
+    in_reply_to_id: Optional[ID] = None
+    in_reply_to_account_id: Optional[ID] = None
+    reblog: Optional["Status"] = None
+    poll: Optional[API_OBJECT[Poll]] = None
+    card: Optional[API_OBJECT[PreviewCard]] = None
+    language: Optional[str] = None
+    text: Optional[str] = None
+    edited_at: Optional[DATETIME] = None
+    favourited: Optional[bool] = None
+    reblogged: Optional[bool] = None
+    muted: Optional[bool] = None
+    bookmarked: Optional[bool] = None
+    pinned: Optional[bool] = None
+    filtered: Optional[List[API_OBJECT[FilterResult]]] = None
+    quote: Optional[API_OBJECT[Quote | ShallowQuote]] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass
+class Report:
+    id: ID
+    action_taken: bool
+    action_taken_at: Optional[DATETIME]
+    category: ENUM[ReportCategory]
+    comment: str
+    forwarded: bool
+    created_at: DATETIME
+    status_ids: Optional[List[ID]]
+    rule_ids: Optional[List[ID]]
+    target_account: API_OBJECT[Account]
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass
+class RelationshipSeveranceEvent:
+    id: ID
+    type: ENUM[RelationshipSeveranceEventType]
+    purged: bool
+    target_name: str
+    followers_count: int
+    following_count: int
+    created_at: DATETIME
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass
+class Appeal:
+    text: str
+    state: ENUM[AppealState]
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@APIDATACLASS
+@dataclass
+class AccountWarning:
+    id: ID
+    action: ENUM[WarningAction]
+    text: str
+    status_ids: Optional[List[ID]]
+    target_account: API_OBJECT[Account]
+    appeal: Optional[API_OBJECT[Appeal]]
+    created_at: DATETIME
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass
+class Notification:
+    id: ID
+    type: ENUM[NotificationType]
+    group_key: str
+    created_at: DATETIME
+    account: API_OBJECT[Account]
+    status: Optional[API_OBJECT[Status]] = None
+    report: Optional[API_OBJECT[Report]] = None
+    event: Optional[API_OBJECT[RelationshipSeveranceEvent]] = None
+    moderation_warning: Optional[API_OBJECT[AccountWarning]] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
+@APIDATACLASS
+@dataclass
+class Marker:
+    last_read_id: ID
+    version: int
+    updated_at: DATETIME
+
+    def __post_init__(self):
+        super().__post_init__()

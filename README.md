@@ -11,14 +11,15 @@ A simple API for linking mastodon to your python codes.
 # Features
 - Masthon engine
 	- [x] main loop
-	- [ ] asynchronous
+	- [x] asynchronous
 - Server Interactions
 	- [x] Make a request to your server
 	- Statuses
 	    - [x] Post
 	    - [x] Delete
-	    - [ ] Get home timeline
 	    - [x] Upload a file
+	- Users
+		- [ ] Get user
 	- Timelines
 		- Home & Tags
 			- [ ] Get timeline
@@ -53,7 +54,7 @@ When you defined all your functions, you can start the #mainloop ([[Client#run(.
 
 # License
 
-This package is under The GNU / General Public License version 3.
+This package is under the GNU / General Public License version 3.
 
 # Contribute
 ## How to
