@@ -296,44 +296,8 @@ class WarningAction(Enum):
     SUSPEND = "suspend"
 
 
-# # ! Already deprecated, need big rework and fixes, instead use @dataclass
-# class DataClass:
-#     """:)"""
 
-#     def __repr__(self) -> str:
-#         args = ", ".join(
-#             [
-#                 str(attr) + "=" + repr(self.__getattribute__(attr))
-#                 for attr in self
-#             ]
-#         )
-#         if len(args) > 76:
-#             return f"""{self.__class__.__name__}({args[:40] + " ... " + args[-10:]})"""
-#         else:
-#             return f"""{self.__class__.__name__}({args})"""
-
-#     # # TODO: Complete that
-#     # #! Not working yet
-#     # def __set(self, **kwargs):
-#     #     ignored = {}
-#     #     ann = self.__init__.__annotations__
-#     #     self.__slots__ = frozenset()
-#     #     for k, v in kwargs:
-#     #         if k not in self.__annotations__.keys():
-#     #             ignored[k] = v
-#     #         else:
-#     #             self.__slots__ += frozenset(k)
-#     #             try:
-#     #                 if isinstance(v, ann[k]):
-#     #                     setattr(self, k, v)
-#     #             except TypeError as e:
-#     #                 if e.args.startswith("Subscripted "):  # typing
-#     #                     pass
-#     #                 else:
-#     #                     raise e
-#     #     if len(ignored) > 0:
-#     #         raise DataClassException(json.dumps(ignored), ignored)
-
+#DATACLASSES
 
 @APIDATACLASS
 @dataclass(order=True)
