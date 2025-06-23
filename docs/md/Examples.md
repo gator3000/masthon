@@ -3,7 +3,7 @@ Here I'll explain examples.
 
 # 0. Get started
 #loopedfunctions #CLI #scheduling 
-This example allow you to understand how to set cyclic actions, commands and sheduled functions. It use the client method [[docs/md/Client.py|Client.py]]
+This example allow you to understand how to set cyclic actions, commands and sheduled functions. It use the client method [[Client py]]
 ```py
 """
 First example !

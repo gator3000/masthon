@@ -2,17 +2,14 @@
 Some classes representing API objects here ! (And enums needed to use the package well)
 """
 
-# from __future__ import annotations
 from typing import (
     List,
     Optional,
     Dict,
     Any,
     Union,
-    Self,
     Iterable,
     TypeAlias,
-    Generic,
     TypeVar,
     Type,
     TYPE_CHECKING,
@@ -22,7 +19,6 @@ from dataclasses import dataclass, field
 from enum import Enum, EnumType
 from datetime import datetime
 
-import json
 
 from .Exceptions import DataClassException
 
@@ -406,7 +402,7 @@ class Account:
     following_count: int
     last_status_at: Optional[DATETIME] = None
     noindex: Optional[bool] = None
-    moved: Optional[API_OBJECT["Status"]] = None
+    moved: Optional[API_OBJECT["Account"]] = None
     suspended: Optional[bool] = None
     limited: Optional[bool] = None
     group: Optional[bool] = None
@@ -431,8 +427,8 @@ class Application:
     scopes: Optional[List[str]] = None
     redirect_uris: Optional[List[URL]] = None
     website: Optional[URL] = None
-    redirect_uri: Optional[URL] = None  #! deprecated
-    vapid_key: Optional[str] = None  #! deprecated
+    redirect_uri: Optional[URL] = None  # mDOC: deprecated
+    vapid_key: Optional[str] = None  # mDOC: deprecated
     client_id: Optional[ID] = None  # from Credential app object
     client_secret: Optional[str] = None  # ''
     client_secret_expires_at: Optional[DATETIME | int] = (
@@ -536,7 +532,7 @@ class PreviewCard:
     width: int
     height: int
     embed_url: URL
-    authors: Optional[List[PreviewCardAuthor]] = None
+    authors: Optional[List[API_OBJECT[PreviewCardAuthor]]] = None
     image: Optional[str] = None
     blurhash: Optional[str] = None
     language: Optional[str] = None
@@ -594,8 +590,8 @@ class Filter:
     context: List[ENUM[Context]]
     expires_at: Optional[DATETIME]
     filter_action: ENUM[FilterAction]
-    keywords: List[FilterKeyword]
-    statuses: List[FilterStatus]
+    keywords: List[API_OBJECT[FilterKeyword]]
+    statuses: List[API_OBJECT[FilterStatus]]
 
     def __post_init__(self):
         super().__post_init__()

@@ -2,67 +2,82 @@ The client is defined here.
 
 # TOKEN_FORMAT
 #constant #compiled_regex
+
 The format of the token with regex.
 
 # SERVER_FORMAT
 #constant #compiled_regex 
+
 The format of an instance's url.
 
 ___
 # Client
 #class #client #exported
+
 The client !
+[[#__init__(...)|Initialisation here]]
 
-#### epoch
-#attribute #client #mainloop 
-The result of `time.time()` when mainloop is started. else, `None`.
+### RUNNING
+#mainloop #client 
 
-#### funcs
-#attribute #client #scheduling
-`Dict[<float1>, List[Tuple[<float2>, <Callable>]]]`
-Associate time (`<float1>`) between `<Callable>` is executed to his last time (`<float2>`).
-
-#### scheduled
-#attribute #client #scheduling 
-`Dict[Callable, float]`
-Associate function (`Callable`) to his delay (`float`) before it will be executed relative to [[#epoch]].
-
-#### commands
-#attribute #client #CLI
-`Dict[str, Callable]`
-Associate the command name (`str`) to its function (`Callable`).
-
-#### cli_last_error
-#attribute #client #CLI #exceptionManaging
-Contain the last error raised by a command from the CLI system.
-
-#### RUNNING
-#attribute #mainloop #client 
 `bool` : `True` if the loop is running else, `False`. You can change it to stop the loop but use instead [[#`stop(...)`]].
 
-#### __init__(...)
+### \_\_repr__(...)
+#method #client #dunder
+
+...
+
+### \_\_format__(...)
+#method #client #dunder 
+
+Allowing user to display the client with token or without. 
+
+### \_\_init__(...)
 #method #constructor #client #dunder #events
+
 ```py
 def __init__(
 	self,
 	token: str,
 	server: str = "https://mastodon.social",
 	*,
-	used_events: Optional[Event | Tuple[Event]] = None,
-	event_reactivity: int = 15,
+    async_level: int = 0,
+    used_events: Optional[Event | Tuple[Event]] = None,
+    event_reactivity: int = 15,
 ) -> None:
 ```
 
-#### stop(...)
+> [!NOTE] `async_level` :
+> #threading 
+> > [!NOTE]- `0`: No threading
+> > -> just execute sequentially your function when they must
+>
+> > [!NOTE]- `1`: Step by step threading
+> > -> execute with threads each steps of the main loop and wait them before starting the next step
+> > (not very useful except if you have two or more functions which will be executed at the same loop step but even use level 2 if your hardware has very few RAM because less threads will run (and be saved) at the same time.)
+>
+> > [!NOTE]- `2`: Full threading `[RECOMENDED]`
+> > -> start threads and just go forward without waiting them to continue
+> > allowing you to execute commands event if a thread is working in background
+
+> [!NOTE] `event_reactivity` :
+> #events 
+> Every x seconds, client will check possible events triggered
+
+
+### stop(...)
 #method #mainloop #client
+
 Use this method to stop manually the mainloop.
 
-#### run(...)
+### run(...)
 #method #mainloop #client 
-Start the mainloop. Return `None` when loop is stopped.
 
-#### \_raw_request(...)
+Start the mainloop. Return `None` when loop is finished or raise a `RuntimeError` if you try to start 2 instances of the same client at the same time.
+
+### \_raw_request(...)
 #method #client #RequestAPI
+
 ```py
 def _raw_request(
 	self,
@@ -78,8 +93,9 @@ def _raw_request(
 ```
 Use it to make a request to the api. `path` must start with a `"/"` like `"/api/v1/statuses`.
 
-#### post_status(...)
+### post_status(...)
 #method #client #RequestAPI #statuses 
+
 ```py
 def post_status(
 	self,
@@ -92,25 +108,33 @@ def post_status(
 	**kwargs,
 ) -> List[Status] | Status:
 ```
-... [[DataClasses py#Status]]
+...
 
-#### upload_media(...)
+> [!Example] References
+> [[DataClasses py#Status]]
+
+### upload_media(...)
 #method #client #RequestAPI 
+
 ```py
 def upload_media(
 	self, src: str, *, type_: str = "image/{ext}", **kwargs
 ) -> MediaAttachment:
 ```
 `type_` is the type of the file like `"image/png"` or `"audio/mpeg"
-[[DataClasses py#MediaAttachment]]
 
-#### delete_status(...)
+> [!Example] References
+> [[DataClasses py#MediaAttachment]]
+
+### delete_status(...)
 #method #client #RequestAPI #statuses
+
 `def delete_status(self, status: Status | str, **kwargs) -> requests.Response:`
 Just delete a status with its id or its object.
 
-#### unread_notifications_count(...)
+### unread_notifications_count(...)
 #method #client #RequestAPI #notifications
+
 ```py
 def unread_notifications_count(
 	self, types: Iterable[NotificationType] = [], **kwargs
@@ -118,8 +142,9 @@ def unread_notifications_count(
 ```
 ...
 
-#### get_notifications(...)
+### get_notifications(...)
 #method #client #RequestAPI #notifications
+
 ```py
 def get_notifications(
 	self,
@@ -129,46 +154,59 @@ def get_notifications(
 	**kwargs,
 ) -> List[Notification]:
 ```
-... [[DataClasses py#Notification]]
+...
 
-#### get_marker(...)
+> [!Example] References
+> [[DataClasses py#Notification]]
+
+### get_marker(...)
 #method #client #RequestAPI #notifications #timelines #markers
+
 ```py
 def get_marker( 
 	self, timeline: Iterable[TimelineType], **kwargs
 ) -> Dict[TimelineType, Marker]:
 ```
 ...
-[[DataClasses py#TimelineType]]
-[[DataClasses py#Marker]]
 
-#### post_marker(...)
+> [!Example] References
+> [[DataClasses py#TimelineType]]
+> [[DataClasses py#Marker]]
+
+### post_marker(...)
 #method #client #RequestAPI #notifications #timelines #markers 
+
 ```py
 def post_marker(
-	self, timelines: Dict[str, str], **kwargs
+	self, timelines: Dict[str, Dict[str, str]], **kwargs
 ) -> Dict[TimelineType, Marker]:
 ```
 ...
-[[DataClasses py#TimelineType]]
-[[DataClasses py#Marker]]
 
-#### looped_every(...)
+> [!Example] References
+> [[DataClasses py#TimelineType]]
+> [[DataClasses py#Marker]]
+
+### looped_every(...)
 #method #client #decoratorGenerator #scheduling #loopedfunctions
+
 `def looped_every(self, time: float = 60) -> Callable:`
 Return a decorator to make your function executed every \<`time`\> seconds.
 
-#### schedule(...)
+### schedule(...)
 #method #client #decoratorGenerator #scheduling 
+
 `def schedule(self, after: float = 0) -> Callable:`
 Make your function executed \<`after`\> seconds after your run the client.
 
-#### add_command(...)
+### add_command(...)
 #method #client #decoratorGenerator #CLI 
+
 `def add_command(self, name: str) -> Callable:`
 Add your function to the command list.
 
-#### listen_for(...)
+### listen_for(...)
 #method #client #decoratorGenerator #events 
+
 `def listen_for(self, event: Event) -> Callable:`
 Call your function when `event` is triggered.
