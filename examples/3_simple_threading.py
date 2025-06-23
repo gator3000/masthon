@@ -4,7 +4,7 @@
 Understand "async" (threading actually) with this module
 """
 
-from masthon import Client, DataClasses
+from masthon import Client
 
 from time import sleep
 
