@@ -29,9 +29,9 @@ The type `datetime`  come from the module `datetime`.
 
 ## Meta
 #dataclass
-- original: `ImageMetaInfos` [[docs/md/DataClasses.py#ImageMetaInfos]]
-- small: `ImageMetaInfos` [[docs/md/DataClasses.py#ImageMetaInfos]]
-- focus: `Focus` [[docs/md/DataClasses.py#Focus]]
+- original: `ImageMetaInfos` [[#ImageMetaInfos]]
+- small: `ImageMetaInfos` [[#ImageMetaInfos]]
+- focus: `Focus` [[#Focus]]
 
 ## Source
 #dataclass
@@ -39,7 +39,7 @@ The type `datetime`  come from the module `datetime`.
 - sensitive: `bool`
 - language: `str`
 - note: `str`
-- fields: `List[Field]` [[docs/md/DataClasses.py#Field]]
+- fields: `List[Field]` [[#Field]]
 - follow_requests_count: `int`
 
 ## Role
@@ -63,8 +63,8 @@ The type `datetime`  come from the module `datetime`.
 - header: `str`
 - header_static: `str`
 - locked: `bool`
-- fields: `List[Field]` [[docs/md/DataClasses.py#Field]]
-- emojis: `List[Emoji]` [[docs/md/DataClasses.py#Emoji]]
+- fields: `List[Field]` [[#Field]]
+- emojis: `List[Emoji]` [[#Emoji]]
 - bot: `bool`
 - created_at: `datetime`
 - statuses_count: `int`
@@ -72,19 +72,19 @@ The type `datetime`  come from the module `datetime`.
 - following_count: `int`
 - last_status_at: `Optional[datetime]`
 - noindex: `Optional[bool]`
-- moved: `Optional[Account]` [[docs/md/DataClasses.py#Account]]
+- moved: `Optional[Account]` [[#Account]]
 - suspended: `Optional[bool]`
 - limited: `Optional[bool]`
 - group: `Optional[bool]`
 - discoverable: `Optional[bool]`
 - attribution_domains: `Optional[List[str]]`
-- source: `Optional[Source]` [[docs/md/DataClasses.py#Source]]
-- role: `Optional[Role]` [[docs/md/DataClasses.py#Role]]
+- source: `Optional[Source]` [[#Source]]
+- role: `Optional[Role]` [[#Role]]
 - mute_expires_at: `Optional[datetime]`
 - indexable: `Optional[bool]`
 - uri: `Optional[str]`
 - hide_collections: `Optional[bool]`
-- roles: `Optional[List[Role]]` [[docs/md/DataClasses.py#Role]]
+- roles: `Optional[List[Role]]` [[#Role]]
 
 ## Application
 #dataclass
@@ -110,7 +110,7 @@ The type `datetime`  come from the module `datetime`.
 - url: `str`
 - preview_url: `str`
 - preview_remote_url: `str`
-- meta: `Meta` [[docs/md/DataClasses.py#Meta]]
+- meta: `Meta` [[#Meta]]
 - text_url: `Optional[str]`
 - remote_url: `Optional[str]`
 - description: `Optional[str]`
@@ -129,8 +129,8 @@ The type `datetime`  come from the module `datetime`.
 - multiple: `bool`
 - votes_count: `int`
 - voters_count: `int`
-- options: `List[Poll_Option]` [[docs/md/DataClasses.py#Poll_Option]]
-- emojis: `List[Emoji]` [[docs/md/DataClasses.py#Emoji]]
+- options: `List[Poll_Option]` [[#Poll_Option]]
+- emojis: `List[Emoji]` [[#Emoji]]
 - voted: `Optional[bool]`
 
 ## PreviewCard
@@ -153,32 +153,32 @@ The type `datetime`  come from the module `datetime`.
 ## Quote
 #dataclass 
 - state: `str`
-- status: `Optional[Status]` [[docs/md/DataClasses.py#Status]]
+- status: `Optional[Status]` [[#Status]]
 
 ## Status
 #dataclass #statuses 
 - id: `str`
 - uri: `str`
 - created_at: `datetime`
-- account: `Account` [[docs/md/DataClasses.py#Account]]
+- account: `Account` [[#Account]]
 - content: `str`
 - visibility: `str`
 - sensitive: `bool`
 - spoiler_text: `str`
-- media_attachments: `List[MediaAttachment]` [[docs/md/DataClasses.py#MediaAttachment]]
-- mentions: `List[Mention]` [[docs/md/DataClasses.py#Mention]]
-- tags: `List[Tag]` [[docs/md/DataClasses.py#Tag]]
-- emojis: `List[Emoji]` [[docs/md/DataClasses.py#Emoji]]
+- media_attachments: `List[MediaAttachment]` [[#MediaAttachment]]
+- mentions: `List[Mention]` [[#Mention]]
+- tags: `List[Tag]` [[#Tag]]
+- emojis: `List[Emoji]` [[#Emoji]]
 - reblogs_count: `int`
 - favourites_count: `int`
 - replies_count: `int`
-- application: `Optional[Application]` [[docs/md/DataClasses.py#Application]]
+- application: `Optional[Application]` [[#Application]]
 - url: `Optional[str]`
 - in_reply_to_id: `Optional[str]`
 - in_reply_to_account_id: `Optional[str]`
-- reblog: `Optional[Status]` [[docs/md/DataClasses.py#Status]]
-- poll: `Optional[Poll]` [[docs/md/DataClasses.py#Poll]]
-- card: `Optional[PreviewCard]` [[docs/md/DataClasses.py#PreviewCard]]
+- reblog: `Optional[Status]` [[#Status]]
+- poll: `Optional[Poll]` [[#Poll]]
+- card: `Optional[PreviewCard]` [[#PreviewCard]]
 - language: `Optional[str]`
 - text: `Optional[str]`
 - edited_at: `Optional[str]`
@@ -188,7 +188,7 @@ The type `datetime`  come from the module `datetime`.
 - bookmarked: `Optional[bool]`
 - pinned: `Optional[bool]`
 - filtered: `Optional[List[Dict[str, Any]]]`
-- quote: `Optional[Quote]` [[docs/md/DataClasses.py#Quote]]
+- quote: `Optional[Quote]` [[#Quote]]
 
 ## Report
 #dataclass 
@@ -201,7 +201,7 @@ The type `datetime`  come from the module `datetime`.
 - created_at: `datetime`
 - status_ids: `Optional[List[str]]`
 - rule_ids: `Optional[List[str]]`
-- target_account: `Account` [[docs/md/DataClasses.py#Account]]
+- target_account: `Account` [[#Account]]
 
 ## RelationshipSeveranceEvent
 #dataclass 
@@ -224,8 +224,8 @@ The type `datetime`  come from the module `datetime`.
 - action: `str`
 - text: `str`
 - status_ids: `Optional[List[str]]`
-- target_account: `Account` [[docs/md/DataClasses.py#Account]]
-- appeal: `Optional[Appeal]` [[docs/md/DataClasses.py#Appeal]]
+- target_account: `Account` [[#Account]]
+- appeal: `Optional[Appeal]` [[#Appeal]]
 - created_at: `datetime`
 
 ## Notification
@@ -234,11 +234,11 @@ The type `datetime`  come from the module `datetime`.
 - type: `str`
 - group_key: `str`
 - created_at: `datetime`
-- account: `Account` [[docs/md/DataClasses.py#Account]]
+- account: `Account` [[#Account]]
 - status: `Optional[Status]`
-- report: `Optional[Report]` [[docs/md/DataClasses.py#Report]]
-- event: `Optional[RelationshipSeveranceEvent]` [[docs/md/DataClasses.py#RelationshipSeveranceEvent]]
-- moderation_warning: `Optional[AccountWarning]` [[docs/md/DataClasses.py#AccountWarning]]
+- report: `Optional[Report]` [[#Report]]
+- event: `Optional[RelationshipSeveranceEvent]` [[#RelationshipSeveranceEvent]]
+- moderation_warning: `Optional[AccountWarning]` [[#AccountWarning]]
 
 ## Marker
 #dataclass #markers 

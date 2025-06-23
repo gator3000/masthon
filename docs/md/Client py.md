@@ -92,7 +92,7 @@ def post_status(
 	**kwargs,
 ) -> List[Status] | Status:
 ```
-... [[docs/md/DataClasses.py#Status]]
+... [[DataClasses py#Status]]
 
 #### upload_media(...)
 #method #client #RequestAPI 
@@ -102,7 +102,7 @@ def upload_media(
 ) -> MediaAttachment:
 ```
 `type_` is the type of the file like `"image/png"` or `"audio/mpeg"
-[[docs/md/DataClasses.py#MediaAttachment]]
+[[DataClasses py#MediaAttachment]]
 
 #### delete_status(...)
 #method #client #RequestAPI #statuses
@@ -129,7 +129,7 @@ def get_notifications(
 	**kwargs,
 ) -> List[Notification]:
 ```
-... [[docs/md/DataClasses.py#Notification]]
+... [[DataClasses py#Notification]]
 
 #### get_marker(...)
 #method #client #RequestAPI #notifications #timelines #markers
@@ -139,8 +139,8 @@ def get_marker(
 ) -> Dict[TimelineType, Marker]:
 ```
 ...
-[[docs/md/DataClasses.py#TimelineType]]
-[[docs/md/DataClasses.py#Marker]]
+[[DataClasses py#TimelineType]]
+[[DataClasses py#Marker]]
 
 #### post_marker(...)
 #method #client #RequestAPI #notifications #timelines #markers 
@@ -150,8 +150,8 @@ def post_marker(
 ) -> Dict[TimelineType, Marker]:
 ```
 ...
-[[docs/md/DataClasses.py#TimelineType]]
-[[docs/md/DataClasses.py#Marker]]
+[[DataClasses py#TimelineType]]
+[[DataClasses py#Marker]]
 
 #### looped_every(...)
 #method #client #decoratorGenerator #scheduling #loopedfunctions

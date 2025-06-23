@@ -10,10 +10,10 @@ A simple API for linking mastodon to your python codes.
 
 # Features
 - Masthon engine
-	- [x] main loop
-	- [x] asynchronous (actually, threading)
+	- [x] main loop -> #mainloop
+	- [x] asynchronous (actually, threading) #threading
 - Server Interactions
-	- [x] Make a request to your server
+	- [x] Make a request to your server #RequestAPI
 	- Statuses
 	    - [x] Post
 	    - [x] Delete
@@ -23,34 +23,37 @@ A simple API for linking mastodon to your python codes.
 	- Timelines
 		- Home & Tags
 			- [ ] Get timeline
-		- Notifications
+		- Notifications #notifications 
 		    - [x] Get unread notification count
 		    - [x] Get last received notifications
-		-  Markers
+		-  Markers #markers 
 		    - [x] Post
 		    - [x] Get
 - Event managing
-	- [x] Handler
+	- [x] Handler #events
 		- [x] unread notification
 		- [x] new mention
 		- [ ] new post in timeline
 			- [ ] home
 			- [ ] account
 			- [ ] tag
-- CLI interface
+- CLI interface #CLI
 	- [x] Handler
 		- [x] some defaults commands
 		- [x] create new command
-- Scheduling
+- Scheduling #scheduling #loopedfunctions
 	- [x] Handler
 		- [x] One time execution
 		- [x] Loop back
 
 ## How it works
 
-The package is organized around a main class : The [[docs/md/Client.py]]. It contain your app infos a mainloop and some decorator generators like `@schedule()` ([[docs/md/Client.py#schedule(...)|Client.schedule()]]).
+The package is organized around a main class : The [[Client py]]. It contain your app infos a mainloop and some decorator generators like `@schedule()` ([[Client py#scehdule(...)]]).
 
-When you defined all your functions, you can start the #mainloop ([[docs/md/Client.py#run(...)|Client.run()]]) and see it working (normally :) ... ).
+When you defined all your functions, you can start the #mainloop ([[Client py#run(...)]]) and see it working (normally :) ... ).
+
+### Get Started
+At [[Examples]] you can find examples which explain how to handle main features. To go deeper you can [[#Contact me]] or browse [[Client py]], [[Events py]], [[DataClasses py]], [[utils py]], [[Exceptions py]], [[__init__ py]] and so on.
 
 # License
 
@@ -66,5 +69,5 @@ To contribute, just contact me, give me some of your programs, so I can choose p
 | Platform   | Link                               | Pseudo / ID                        |
 | ---------- | ---------------------------------- | ---------------------------------- |
 | *Mastodon* | https://mastodon.social/@gator3000 | `@gator3000`                       |
-| *Mail*     | -------------------                | org.literie.gator@h3110.aleeas.com |
+| *Mail*     |                                    | org.literie.gator@h3110.aleeas.com |
 | *Discord*  | https://discord.com                | `_gator3000`                       |
