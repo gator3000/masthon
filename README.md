@@ -48,9 +48,9 @@ A simple API for linking mastodon to your python codes.
 
 ## How it works
 
-The package is organized around a main class : The [[Client]]. It contain your app infos a mainloop and some decorator generators like `@schedule()` ([[Client#schedule(...)|Client.schedule()]]).
+The package is organized around a main class : The [[docs/md/Client.py]]. It contain your app infos a mainloop and some decorator generators like `@schedule()` ([[docs/md/Client.py#schedule(...)|Client.schedule()]]).
 
-When you defined all your functions, you can start the #mainloop ([[Client#run(...)|Client.run()]]) and see it working (normally :) ... ).
+When you defined all your functions, you can start the #mainloop ([[docs/md/Client.py#run(...)|Client.run()]]) and see it working (normally :) ... ).
 
 # License
 
