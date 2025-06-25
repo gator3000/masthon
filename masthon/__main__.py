@@ -11,7 +11,7 @@ if __name__ == "__main__":
             print("Documentation   : https://gator3000.gitlab.io/masthon/")
             print("Discord Server  : https://discord.gg/2CVuXXTUVr")
             print()
-            print(f"Current version: {version}")
+            print(f"Current version : '{version}'")
             sys.exit(0)
     print("Hello World ! Let's start with posting a simple message.")
     server = input("What's your instance (like `https://mastodon.social`) : ")
