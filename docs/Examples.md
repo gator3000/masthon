@@ -1,5 +1,5 @@
 Here I'll explain examples.
-# -1. Installation
+# -1 Installation
 
 You can install the package with this command, replacing \<tag\> by the version you want :
 ```sh
@@ -12,7 +12,7 @@ pip install git+https://gitlab.com/Gator3000/masthon.git
 ```
 
 
-# 0. Get started
+# 0 Get started
 #loopedfunctions #CLI #scheduling 
 
 This example allow you to understand how to set cyclic actions, commands and scheduled functions. It use the client object [[Client py#Client]] and some #decoratorGenerator to start #function
@@ -69,7 +69,7 @@ client.run()
 > ```
 
 
-# 1. Publish periodical data
+# 1 Publish periodical data
 #loopedfunctions #CLI
 
 
@@ -172,7 +172,7 @@ def clean(client: Client):
 c.run()
 ```
 
-# 2. React when event triggered
+# 2 React when event triggered
 #events 
 
 This program reply every time somebody ping him (mention).
@@ -219,7 +219,7 @@ c.run()
 
 ```
 
-# 3. Simple threading
+# 3 Simple threading
 #threading 
 
 
