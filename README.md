@@ -46,6 +46,7 @@ ___
 	- [x] Handler
 		- [x] One time execution [[Client py#schedule(...)]]
 		- [x] Loop back [[Client py#looped_every(...)]]
+
 and more at [[Client py]].
 
 ___
@@ -79,4 +80,4 @@ To contribute, just contact me, give me some of your programs, so I can choose p
 | *Mastodon*       | https://mastodon.social/@gator3000 | `@gator3000`                       |
 | *Mail*           |                                    | org.literie.gator@h3110.aleeas.com |
 | *Discord*        | https://discord.com                | `_gator3000`                       |
-| *Discord server* | https://discord.gg/2CVuXXTUVr      | `.gg//2CVuXXTUVr`                  |
+| *Discord server* | https://discord.gg/2CVuXXTUVr      | `.gg/2CVuXXTUVr`                   |
