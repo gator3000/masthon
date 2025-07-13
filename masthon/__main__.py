@@ -1,4 +1,4 @@
-from .__init__ import Client, __version__ as version
+from .__init__ import Client, __version__ as version, DEFAULT_MESSAGE
 
 from time import asctime
 import sys
@@ -21,7 +21,8 @@ if __name__ == "__main__":
 
     @client.schedule()
     def on_starting(local_client: Client) -> None:
-        local_client.post_status(DEFAULT_MESSAGE.format(asctime()))
+        s = local_client.post_status(DEFAULT_MESSAGE.format(asctime()))
+        print(f"\nYou can view the post at `{s.uri}` or on your bot's feed feed.")
         local_client.stop()
 
     print("Running client ...")

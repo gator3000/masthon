@@ -11,7 +11,7 @@ pip install git+https://gitlab.com/Gator3000/masthon.git@v0.2a
 pip install git+https://gitlab.com/Gator3000/masthon.git
 ```
 
-
+___
 # 0 Get started
 #loopedfunctions #CLI #scheduling 
 
@@ -68,7 +68,7 @@ client.run()
 > client.post_status("Hello World form the API !")
 > ```
 
-
+___
 # 1 Publish periodical data
 #loopedfunctions #CLI
 
@@ -172,6 +172,7 @@ def clean(client: Client):
 c.run()
 ```
 
+___
 # 2 React when event triggered
 #events 
 
@@ -219,6 +220,7 @@ c.run()
 
 ```
 
+___
 # 3 Simple threading
 #threading 
 
