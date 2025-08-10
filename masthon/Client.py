@@ -296,34 +296,39 @@ class Client:
             response = requests.request(
                 method.value.upper(), url, headers=auth, files=files, json=data
             )
+        check_statuscode(response)
 
-        if response.status_code == 429:
-            if ratelimit_security:
-                self.stop()
-            raise HTTPRateLimit("429 Too many requests: Slow down !")
-
+        return response
+        
+    def check_statuscode(self,response: requests.Response, ratelimit_security: bool = True):
+        try:
+            error_msg = response.json().get("error", "Unknown error")
+        except ValueError:
+            error_msg = "Response body is not valid JSON"
         match response.status_code // 100:
             case 4:
                 if response.status_code == 401:
                     raise HTTP401Error(
-                        "401 Unauthorized: Your acces token is invalid",
+                        "401 Unauthorized: Your access token is invalid",
                         response.status_code,
                     )
-                raise HTTPRequestError400(
-                    f"The request is invalid : HTTP Error {response.status_code}",
-                    "\n",
-                    response.json()["error"],
-                    response.status_code,
-                )
+                elif response.status_code == 429:
+                    if ratelimit_security:
+                        self.stop()
+                    raise HTTPRateLimit("429 Too many requests: Slow down!")
+                else:
+                    raise HTTPRequestError400(
+                        f"The request is invalid : HTTP Error {response.status_code}",
+                        error_msg,
+                        response.status_code,
+                    )
             case 5:
                 raise HTTPServerError500(
-                    f"An error as occured from the server `{self.server}` : HTTP Error {response.status_code}",
+                    f"An error as occurred from the server `{self.server}` : HTTP Error {response.status_code}",
                     response.status_code,
                 )
             case _:
-                pass
-        return response
-
+                pass # a changer pour et ajouter case pour erreur type 300 (redirection),200(success),100(informationnel)
     @LOG()
     def post_status(
         self,
