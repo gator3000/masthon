@@ -368,9 +368,8 @@ class Client:
         self.check_statuscode(response, ratelimit_security)
 
         return response
-
-    @LOG()
-    def check_statuscode(self, response, ratelimit_security: bool = True):
+        
+    def check_statuscode(self,response, ratelimit_security: bool = True):
         try:
             error_msg = response.json().get("error", "Unknown error")
         except ValueError:
@@ -456,6 +455,7 @@ class Client:
             return [Status(**el) for el in response.json()]
         else:
             return Status(**response.json())
+
 
     @LOG()
     def upload_media(
