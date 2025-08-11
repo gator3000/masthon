@@ -47,7 +47,7 @@ class Client:
     def __init__(
         self,
         token: str,
-        server: str = "https://mastodon.social",
+        server: str = f"https://mastodon.social{apiversion}",
         *,
         async_level: int = 0,
         used_events: Optional[Event | Tuple[Event]] = None,
@@ -351,7 +351,7 @@ class Client:
         HTTPServerError500
             ...
         """
-        url = self.server + path
+        url = self.server + apiversion + path
         print(url)
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
         data = {**kwargs, **additional_data}
