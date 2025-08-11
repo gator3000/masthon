@@ -4,8 +4,6 @@ First example !
 Just to handle the module.
 """
 
-from typing import Tuple
-
 from masthon import Client, DEFAULT_MESSAGE
 
 from time import asctime
