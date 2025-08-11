@@ -179,7 +179,7 @@ ___
 This program reply every time somebody ping him (mention).
 
 > [!TIP]-
-> Some lines (`assert isinstance(...), ...`) are useless except if you use mypy.
+> Some lines (`assert isinstance(), ...`) are useless except if you use mypy.
 
 ```py
 """

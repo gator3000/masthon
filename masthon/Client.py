@@ -19,7 +19,9 @@ import traceback
 
 
 TOKEN_FORMAT: re.Pattern = re.compile(r"^[A-Za-z0-9\-_]{43}$")
-SERVER_FORMAT: re.Pattern = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$")
+SERVER_FORMAT: re.Pattern = re.compile(
+    r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$"
+)
 
 
 class Client:
@@ -100,7 +102,9 @@ class Client:
         self.cli_last_error: Optional[Exception] = None
 
         if not (0 <= async_level <= 2):
-            print("\033[1m\033[91m[WARN]\033[93m Async level unknown >\033[0m default set to 0") 
+            print(
+                "\033[1m\033[91m[WARN]\033[93m Async level unknown >\033[0m default set to 0"
+            )
             async_level = 0
         self._async_level = async_level
 
@@ -123,21 +127,26 @@ class Client:
 
     stop.__doc__ = """stop the main mainloop"""  # ? I dont know why if I dont put this line stop.__doc__  is None
 
-    def _step(self, i: Optional[int] = None) -> None:
+    def _step(self, i: int) -> None:
         # Checks
         if not isinstance(self.epoch, float):
             raise MasthonException("Loop not started, impossible to execute one step.")
-        
+
+        # Calling
+        self._on_loop_step_(self, i)
+
         # process list initialisation
         match self._async_level:
             case 0:
-                pass # not used
+                pass  # not used
             case 1:
-                self.process.clear() # cleared because all process down
+                self.process.clear()  # cleared because all process down
             case 2:
                 for i, p in enumerate(self.process):
                     if not p.is_alive():
-                        del self.process[i] # juste delete process down and let other run
+                        del self.process[
+                            i
+                        ]  # juste delete process down and let other run
         self.process = list()
 
         # Sheduled functions (executed one time)
@@ -201,7 +210,7 @@ class Client:
     def _event_handling(self) -> None:
         self.last_listened = time.time()
         for event, funcs in self.activated_listeners.items():
-            #! Not async but entire method is, and we need results
+            #! Not async but whole method is, and we need results before continuing
             out = self.listeners.listen_for(event)
             if out.status == EventStatus.TRIGGERED:
                 for func in funcs:
@@ -209,49 +218,60 @@ class Client:
                         case 0:
                             func(self, out.data)
                         case 1:
-                            self.process.append(tg.Thread(target=func, args=(self, out.data)))
+                            self.process.append(
+                                tg.Thread(target=func, args=(self, out.data))
+                            )
                             self.process[-1].start()
                         case 2:
-                            self.process.append(tg.Thread(target=func, args=(self, out.data)))
+                            self.process.append(
+                                tg.Thread(target=func, args=(self, out.data))
+                            )
                             self.process[-1].start()
 
     def run(self) -> None:
         """Run the mainloop.
 
         Raises:
-            RuntimeError: If you try to run an instance into.
+            RuntimeError: If you try to run an instance into another.
         """
         if self.RUNNING:
             raise RuntimeError("You can't run two instances at the same time.")
         i = 0
         self.RUNNING = True
         self.epoch = time.time()
-        while self.RUNNING:
-            u_input = get_user_input()
-            if u_input:
-                try:
-                    # Get command from inputed string
-                    cmd, *cmdargs = u_input.split(" ")
-                    if cmd not in self.commands:
-                        raise CommandNotFound(
-                            f"Command `{cmd}` not found. Type help to see commands that you can use `help` or `h`."
-                        )
+
+        self._on_start_(self)
+
+        try:
+            while self.RUNNING:
+                u_input = get_user_input()
+                if u_input:
                     try:
-                        self.commands[cmd](self, *cmdargs)
-                    except Exception as e:
-                        self.cli_last_error = e
-                        if isinstance(e, RealException):
-                            raise e.args[0] from e.args[0]
-                        raise CommandExecutionError(
-                            f"An exception as occured while executing the command named `{cmd}`.",
-                            e,
+                        # Get command from inputed string
+                        cmd, *cmdargs = u_input.split(" ")
+                        if cmd not in self.commands:
+                            raise CommandNotFound(
+                                f"Command `{cmd}` not found. Type help to see commands that you can use `help` or `h`."
+                            )
+                        try:
+                            self.commands[cmd](self, *cmdargs)
+                        except Exception as e:
+                            self.cli_last_error = e
+                            if isinstance(e, RealException):
+                                raise e.args[0] from e.args[0]
+                            raise CommandExecutionError(
+                                f"An exception as occured while executing the command named `{cmd}`.",
+                                e,
+                            )
+                    except CLIException as e:
+                        print(
+                            f"\033[91m\033[1m{e.__class__.__name__}: \033[0m\033[91m{e.args[0]}\033[0m"
                         )
-                except CLIException as e:
-                    print(
-                        f"\033[91m\033[1m{e.__class__.__name__}: \033[0m\033[91m{e.args[0]}\033[0m"
-                    )
-            self._step(i)
-            i += 1
+                self._step(i)
+                i += 1
+        finally:
+            self._on_stop_(self)
+            self.RUNNING = False
 
     @TRY(HTTPError)
     @LOG(True, True, args_max_lenght=64)
@@ -327,7 +347,7 @@ class Client:
     @LOG()
     def post_status(
         self,
-        text: str = "Hello World from Mastodon API !",
+        text: str,  # ? default value deleted : pretty useless
         medias: Optional[List[str]] = [],
         visibility: Visibility = Visibility.UNLISTED,  # ? Changed to unlisted to prevent spam
         in_reply_to_id: Optional[str] = None,
@@ -368,23 +388,22 @@ class Client:
         else:
             return Status(**response.json())
 
-
     @LOG()
     def upload_media(
-        self, src: str, *, type_: str = "image/{ext}", **kwargs
+        self, src: str, *, type_: MediaType = MediaType.IMAGE, **kwargs
     ) -> MediaAttachment:
         """Upload a media (syncronously) with /api/v1
 
         Args:
             src (str): source of your media file
-            type_ (str, optional): Like `image/png` but you can formate this with {ext} = after the dot. Defaults to "image/{ext}".
+            type_ (MediaType, optional): Default to MediaType.IMAGE
 
         Returns:
             MediaAttachment: The media uploaded as an object.
         """
         with open(src, "rb") as f:
             files = {
-                "file": (src.split("/")[-1], f, type_.format(ext=src.split(".")[-1]))
+                "file": (src.split("/")[-1], f, type_.value)
             }
 
             response = self._raw_request(
@@ -406,7 +425,7 @@ class Client:
         """Delete given status
 
         Args:
-            status (Status | str): ...
+            status (Status | str): if str, interpreted as the id of the status to delete
 
         Returns:
             requests.Response: The response returned by the API.
@@ -480,7 +499,7 @@ class Client:
 
         Args:
             timeline (Iterable[TimelineType]): ...
-        
+
         Returns:
             Dict[TimelineType, Marker]: ....
         """
@@ -506,7 +525,7 @@ class Client:
             timeline (Iterable[TimelineType]):
                 Example:
                 {TimelineType.NOTIFICATIONS.value: {"last_read_id": notification.id}}
-        
+
         Returns:
             Dict[TimelineType, Marker]: markers generated
         """
@@ -646,3 +665,25 @@ c.run()
             return func
 
         return _decorator
+
+    def _on_start_(_, self) -> None: ...
+    def _on_loop_step_(_, self, i: int) -> None: ...
+    def _on_stop_(_, self) -> None: ...
+    # def _on_request_(_, self, *args, **kwargs) -> Any: ...
+
+    def execute(self, func: Callable) -> Callable:
+
+        e_name = "_" + func.__name__ + "_"
+
+        if getattr(self, e_name, None) is None or e_name not in ("_on_start_", "_on_loop_step_", "_on_stop_"):
+            raise AttributeError("Event not known.")
+        setattr(self, e_name, func)
+
+        return func
+    
+    #* Maybe one day it will be possible to modify reqests before they will be sent
+    # def __request_modifier__(func: Callable) -> Callable:
+    #     def _wrapper(*args, **kwargs) -> Any:
+    #         return func(**args, **kwargs)
+        
+    #     return _wrapper
