@@ -179,12 +179,12 @@ class Client:
         ):
             match self._async_level:
                 case 0:
-                    self.event_handling()
+                    self._event_handling()
                 case 1:
-                    self.process.append(tg.Thread(target=self.event_handling))
+                    self.process.append(tg.Thread(target=self._event_handling))
                     self.process[-1].start()
                 case 2:
-                    self.process.append(tg.Thread(target=self.event_handling))
+                    self.process.append(tg.Thread(target=self._event_handling))
                     self.process[-1].start()
 
         # End
@@ -198,7 +198,7 @@ class Client:
             case 2:
                 pass
 
-    def event_handling(self) -> None:
+    def _event_handling(self) -> None:
         self.last_listened = time.time()
         for event, funcs in self.activated_listeners.items():
             #! Not async but entire method is, and we need results
@@ -220,9 +220,6 @@ class Client:
 
         Raises:
             RuntimeError: If you try to run an instance into.
-            CommandNotFound: ...
-            e.args: Errors that they are raised by your commands.
-            CommandExecutionError: Not really raised.
         """
         if self.RUNNING:
             raise RuntimeError("You can't run two instances at the same time.")
@@ -233,6 +230,7 @@ class Client:
             u_input = get_user_input()
             if u_input:
                 try:
+                    # Get command from inputed string
                     cmd, *cmdargs = u_input.split(" ")
                     if cmd not in self.commands:
                         raise CommandNotFound(
@@ -434,7 +432,7 @@ class Client:
             types (List[NotificationType], optinal): types counted
 
         Returns:
-            int: ....
+            int: ...
         """
         response = self._raw_request(
             add_url_parameters(
@@ -500,7 +498,7 @@ class Client:
 
     @LOG()
     def post_marker(
-        self, timelines: Dict[str, str], **kwargs
+        self, timelines: Dict[str, Dict[str, str]], **kwargs
     ) -> Dict[Type[TimelineType], Marker]:
         """Post and generate markers of given ids
 
