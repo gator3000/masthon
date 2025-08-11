@@ -481,6 +481,7 @@ class Client:
         else:
             return Status(**response.json())
 
+
     @LOG()
     def upload_media(
         self, src: str, *, type_: MediaType = MediaType.IMAGE, **kwargs
