@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     server= str(os.environ.get('SERVER'))
     token = os.environ.get('TOKEN_ACCESS')
-    print (f"server value{server}")
+
     client = Client(token=token, server=server)
     
     @client.schedule()
