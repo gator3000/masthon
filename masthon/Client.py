@@ -296,7 +296,7 @@ class Client:
             response = requests.request(
                 method.value.upper(), url, headers=auth, files=files, json=data
             )
-        check_statuscode(response)
+        check_statuscode(response,ratelimit_security)
 
         return response
         
@@ -305,6 +305,7 @@ class Client:
             error_msg = response.json().get("error", "Unknown error")
         except ValueError:
             error_msg = "Response body is not valid JSON"
+
         match response.status_code // 100:
             case 4:
                 if response.status_code == 401:
