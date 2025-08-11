@@ -51,7 +51,7 @@ class Client:
     def __init__(
         self,
         token: str,
-        server: str = "https://mastodon.social",
+        server: str = f"https://mastodon.social{apiversion}",
         *,
         async_level: int = 0,
         used_events: Optional[Event | Tuple[Event]] = None,
