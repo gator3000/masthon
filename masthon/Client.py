@@ -288,11 +288,11 @@ class Client:
             response = requests.request(
                 method.value.upper(), url, headers=auth, files=files, json=data
             )
-        check_statuscode(response,ratelimit_security)
+        self.check_statuscode(response,ratelimit_security)
 
         return response
         
-    def check_statuscode(self,response: requests.Response, ratelimit_security: bool = True):
+    def check_statuscode(self,response, ratelimit_security: bool = True):
         try:
             error_msg = response.json().get("error", "Unknown error")
         except ValueError:
@@ -350,6 +350,8 @@ class Client:
         if isinstance(medias, list):
             for media_src in medias:
                 ids.append(str(self.upload_media(media_src).id))
+
+        
         response = self._raw_request(
             "/statuses",
             method=RequestMethod.POST,
@@ -361,10 +363,12 @@ class Client:
             language=language,
             **kwargs,
         )
+        print(response)
         if isinstance(response.json(), list):
             return [Status(**el) for el in response.json()]
         else:
             return Status(**response.json())
+
 
 
     @LOG()
