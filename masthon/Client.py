@@ -47,7 +47,7 @@ class Client:
     def __init__(
         self,
         token: str,
-        server: str = "https://mastodon.social",
+        server: str = "https://mastodon.social/api/v1",
         *,
         async_level: int = 0,
         used_events: Optional[Event | Tuple[Event]] = None,
@@ -433,7 +433,7 @@ class Client:
             for media_src in medias:
                 ids.append(str(self.upload_media(media_src).id))
         response = self._raw_request(
-            "/api/v1/statuses",
+            "/statuses",
             method=RequestMethod.POST,
             status=text,
             visibility=visibility.value,
@@ -473,7 +473,7 @@ class Client:
             }
 
             response = self._raw_request(
-                "/api/v1/media",
+                "/media",
                 method=RequestMethod.POST,
                 files=files,
                 data={
@@ -506,7 +506,7 @@ class Client:
         else:
             id_ = status
         response = self._raw_request(
-            f"/api/v1/statuses/{id_}",
+            f"/statuses/{id_}",
             method=RequestMethod.DELETE,
             ratelimit_security=False,
             **kwargs,
@@ -526,7 +526,7 @@ class Client:
         """
         response = self._raw_request(
             add_url_parameters(
-                "/api/v1/notifications/unread_count", types=types, **kwargs
+                "/notifications/unread_count", types=types, **kwargs
             ),
             method=RequestMethod.GET,
         )
@@ -559,7 +559,7 @@ class Client:
         """
         response = self._raw_request(
             add_url_parameters(
-                "/api/v1/notifications",
+                "/notifications",
                 limit=limit,
                 types=types,
                 min_id=min_id,
@@ -588,7 +588,7 @@ class Client:
         """
         response = self._raw_request(
             add_url_parameters(
-                "/api/v1/markers", timeline=[t.value for t in timeline], **kwargs
+                "/markers", timeline=[t.value for t in timeline], **kwargs
             ),
             method=RequestMethod.GET,
             **kwargs,
@@ -616,7 +616,7 @@ class Client:
             markers generated
         """
         response = self._raw_request(
-            "/api/v1/markers",
+            "/markers",
             method=RequestMethod.POST,
             additional_data=timelines,
             json_data=True,
