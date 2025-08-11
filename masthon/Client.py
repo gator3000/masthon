@@ -47,7 +47,7 @@ class Client:
     def __init__(
         self,
         token: str,
-        server: str = f"https://mastodon.social",
+        server: str = "https://mastodon.social",
         *,
         async_level: int = 0,
         used_events: Optional[Event | Tuple[Event]] = None,
@@ -368,7 +368,7 @@ class Client:
         self.check_statuscode(response, ratelimit_security)
 
         return response
-        
+    @LOG()    
     def check_statuscode(self,response, ratelimit_security: bool = True):
         try:
             error_msg = response.json().get("error", "Unknown error")
