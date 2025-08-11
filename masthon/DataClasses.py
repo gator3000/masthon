@@ -8,6 +8,7 @@ from typing import (
     Dict,
     Any,
     Union,
+    Iterable,
     TypeAlias,
     TypeVar,
     Type,

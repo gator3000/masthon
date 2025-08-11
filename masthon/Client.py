@@ -191,6 +191,7 @@ class Client:
             match self._async_level:
                 case 0:
                     self._event_handling()
+                    self._event_handling()
                 case 1:
                     self.process.append(tg.Thread(target=self._event_handling))
                     self.process[-1].start()
@@ -234,6 +235,7 @@ class Client:
         """Run the mainloop.
 
         Raises:
+        -------
             RuntimeError: If you try to run an instance into another.
         """
         if self.RUNNING:

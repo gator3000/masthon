@@ -17,7 +17,7 @@ setup(
     packages=["masthon"],
 =======
     name='Masthon',
-    version='v0.4a',
+    version='v0.3b1',
     description='A simple API for linking masthodon to your python codes.',
     long_description = long_description,
     long_description_content_type = "text/markdown",

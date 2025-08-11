@@ -15,11 +15,16 @@ ___
 #class #client #exported
 
 The client !
+<<<<<<< HEAD
 [[#__init__()|Initialisation here]]
+=======
+[[#__init__(...)|Initialisation here]]
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 
 ### RUNNING
 #mainloop #client 
 
+<<<<<<< HEAD
 `bool` : `True` if the loop is running else, `False`. You can change it to stop the loop but use instead [[#`stop()`]].
 
 ### \_\_repr__()
@@ -33,6 +38,21 @@ The client !
 Allowing user to display the client with token or without. 
 
 ### \_\_init__()
+=======
+`bool` : `True` if the loop is running else, `False`. You can change it to stop the loop but use instead [[#`stop(...)`]].
+
+### \_\_repr__(...)
+#method #client #dunder
+
+...
+
+### \_\_format__(...)
+#method #client #dunder 
+
+Allowing user to display the client with token or without. 
+
+### \_\_init__(...)
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 #method #constructor #client #dunder #events
 
 ```py
@@ -65,17 +85,29 @@ def __init__(
 > Every x seconds, client will check possible events triggered
 
 
+<<<<<<< HEAD
 ### stop()
+=======
+### stop(...)
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 #method #mainloop #client
 
 Use this method to stop manually the mainloop.
 
+<<<<<<< HEAD
 ### run()
+=======
+### run(...)
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 #method #mainloop #client 
 
 Start the mainloop. Return `None` when loop is finished or raise a `RuntimeError` if you try to start 2 instances of the same client at the same time.
 
+<<<<<<< HEAD
 ### \_raw_request()
+=======
+### \_raw_request(...)
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 #method #client #RequestAPI
 
 ```py
@@ -93,7 +125,11 @@ def _raw_request(
 ```
 Use it to make a request to the api. `path` must start with a `"/"` like `"/api/v1/statuses`.
 
+<<<<<<< HEAD
 ### post_status()
+=======
+### post_status(...)
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 #method #client #RequestAPI #statuses 
 
 ```py
@@ -113,7 +149,11 @@ def post_status(
 > [!Example] References
 > [[DataClasses py#Status]]
 
+<<<<<<< HEAD
 ### upload_media()
+=======
+### upload_media(...)
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 #method #client #RequestAPI 
 
 ```py
@@ -126,13 +166,21 @@ def upload_media(
 > [!Example] References
 > [[DataClasses py#MediaAttachment]]
 
+<<<<<<< HEAD
 ### delete_status()
+=======
+### delete_status(...)
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 #method #client #RequestAPI #statuses
 
 `def delete_status(self, status: Status | str, **kwargs) -> requests.Response:`
 Just delete a status with its id or its object.
 
+<<<<<<< HEAD
 ### unread_notifications_count()
+=======
+### unread_notifications_count(...)
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 #method #client #RequestAPI #notifications
 
 ```py
@@ -142,7 +190,11 @@ def unread_notifications_count(
 ```
 ...
 
+<<<<<<< HEAD
 ### get_notifications()
+=======
+### get_notifications(...)
+>>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 #method #client #RequestAPI #notifications
 
 ```py
