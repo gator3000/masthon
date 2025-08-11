@@ -185,10 +185,19 @@ def APIDATACLASS(cls):
 
     _Wrapper.__name__ = cls.__name__
     _Wrapper.__module__ = cls.__module__
+    _Wrapper.__doc__ = cls.__doc__
     return _Wrapper
 
 
 # Enums
+class On(Enum):
+    START = "start"
+    STOP = "stop"
+    LOOP_STEP = "loop_step"
+    REQUEST = "request"
+    CHECK_EVENT = "check_event"
+    POST_STATUS = "post_status"
+
 class RequestMethod(Enum):
     GET = "get"
     POST = "post"

@@ -4,6 +4,7 @@ with open("README.md") as f:
     long_description = f.read()
 
 setup(
+<<<<<<< HEAD
     name="Masthon",
     version="v0.3b1",
     description="A simple API for linking masthodon to your python codes.",
@@ -14,6 +15,18 @@ setup(
     author_email="org.literie.gator@h3110.aleeas.com",
     license="GNU/GPL v3",
     packages=["masthon"],
+=======
+    name='Masthon',
+    version='v0.4a',
+    description='A simple API for linking masthodon to your python codes.',
+    long_description = long_description,
+    long_description_content_type = "text/markdown",
+    url='git@gitlab.com:Gator3000/masthon.git',
+    author='org.literie.gator',
+    author_email='org.literie.gator@h3110.aleeas.com',
+    license='GNU/GPL v3',
+    packages=['masthon'],
+>>>>>>> c63f0a9 (added simple events (on_start ...))
     zip_safe=False,
     python_requires=">=3.10",
     install_requires=[
