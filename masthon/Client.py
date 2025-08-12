@@ -26,6 +26,7 @@ apiversion2 = "/api/v2"
 
 class Client:
     """
+<<<<<<< HEAD
     The representation of your app
 
     __init__:
@@ -42,6 +43,9 @@ class Client:
         A tuple of events you will wait (else they will be never be run), by default None
     event_reactivity : int, optional
         Every x seconds events will be checked if they must be run, by default 15 (sec)
+=======
+    A class representing your application.
+>>>>>>> 33ce3cf (Modifier Client.py)
     """
 
     def __init__(
@@ -53,6 +57,7 @@ class Client:
         used_events: Optional[Event | Tuple[Event]] = None,
         event_reactivity: int = 15,
     ) -> None:
+<<<<<<< HEAD
         """
         The representation of your app
 
@@ -68,6 +73,13 @@ class Client:
             A tuple of events you will wait (else they will be never be run), by default None
         event_reactivity : int, optional
             Every x seconds events will be checked if they must be run, by default 15 (sec)
+=======
+        """The representation of your aplication.
+
+        Args:
+            token (str): The token to auth requests to the API.
+            server (str, optional): The url to the instance where your account is registered. Defaults to "https://mastodon.social".
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
 
         # token format checker
@@ -315,6 +327,7 @@ class Client:
         ratelimit_security: bool = True,
         **kwargs: Dict[str, str],
     ) -> requests.Response:
+<<<<<<< HEAD
         """
         Make a call to the API at `self.server`
 
@@ -350,6 +363,24 @@ class Client:
             ...
         HTTPServerError500
             ...
+=======
+        """Make a request to the API.
+
+        Args:
+            path (str): The API path.
+            method (some http method): The http method used
+            annonymous (bool, optional): If True, token is omitten. Defaults to False.
+            files (str, optional): Files to post. Defaults to None.
+            additional_data (dict, optional): Data to add that you can put as a kwarg (like `"media_ids[]"`). Defaults to dict().
+            json_data (bool, optional): True to send data in json object
+            ratelimit_security (bool, optional): True to stop the loop if your server raise HTTP 429, ratelimit
+
+        Raises:
+            HTTPError: If status_code not 2xx or 3xx.
+
+        Returns:
+            requests.Response: The response from the API.
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
         url = self.server + path
         print(url)
@@ -461,6 +492,7 @@ class Client:
     def upload_media(
         self, src: str, *, type_: MediaType = MediaType.IMAGE, **kwargs
     ) -> MediaAttachment:
+<<<<<<< HEAD
         """
         Upload a media (syncronously) with /api/v1
 
@@ -475,6 +507,16 @@ class Client:
         -------
         MediaAttachment
             The media uploaded as an object.
+=======
+        """Upload a media (syncronously) with /api/v1
+
+        Args:
+            src (str): source of your media file
+            type_ (MediaType, optional): Default to MediaType.IMAGE
+
+        Returns:
+            MediaAttachment: The media uploaded as an object.
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
         with open(src, "rb") as f:
             files = {
@@ -498,6 +540,7 @@ class Client:
 
     @LOG()
     def delete_status(self, status: Status | str, **kwargs) -> requests.Response:
+<<<<<<< HEAD
         """
         Delete given Status.
 
@@ -510,6 +553,15 @@ class Client:
         -------
         requests.Response
             ...
+=======
+        """Delete given status
+
+        Args:
+            status (Status | str): if str, interpreted as the id of the status to delete
+
+        Returns:
+            requests.Response: The response returned by the API.
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
         if isinstance(status, Status):
             id_ = status.id
@@ -548,6 +600,7 @@ class Client:
         min_id: Optional[str] = None,
         **kwargs,
     ) -> List[Notification]:
+<<<<<<< HEAD
         """
         Gets you notifications feed
 
@@ -564,6 +617,17 @@ class Client:
         -------
         List[Notification]
             ...
+=======
+        """Gets you notifications feed
+
+        Args:
+            types (List[NotificationType], optinal): types returned
+            limit (int, optional): ...
+            min_id (str, optional): only newer than this id
+
+        Returns:
+            List[Notification]: ....
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
         response = self._raw_request(
             add_url_parameters(
@@ -581,6 +645,7 @@ class Client:
     def get_marker(
         self, timeline: Iterable[TimelineType], **kwargs
     ) -> Dict[Type[TimelineType], Marker]:
+<<<<<<< HEAD
         """
         Gets the last marker generated of given timelines
 
@@ -593,6 +658,15 @@ class Client:
         -------
         Dict[Type[TimelineType], Marker]
             ...
+=======
+        """Gets the last marker generated of given timelines
+
+        Args:
+            timeline (Iterable[TimelineType]): ...
+
+        Returns:
+            Dict[TimelineType, Marker]: ....
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
         response = self._raw_request(
             add_url_parameters(
@@ -610,6 +684,7 @@ class Client:
     def post_marker(
         self, timelines: Dict[str, Dict[str, str]], **kwargs
     ) -> Dict[Type[TimelineType], Marker]:
+<<<<<<< HEAD
         """
         Post and generate markers to given ids
 
@@ -622,6 +697,17 @@ class Client:
         -------
         Dict[Type[TimelineType], Marker]
             markers generated
+=======
+        """Post and generate markers of given ids
+
+        Args:
+            timeline (Iterable[TimelineType]):
+                Example:
+                {TimelineType.NOTIFICATIONS.value: {"last_read_id": notification.id}}
+
+        Returns:
+            Dict[TimelineType, Marker]: markers generated
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
         response = self._raw_request(
             f"{apiversion1}/markers",
@@ -703,6 +789,7 @@ c.run()
 
     # Decorators !
     def looped_every(self, time: float = 60) -> Callable:
+<<<<<<< HEAD
         """
         Decorator generator for loop your own function into the mainloop.
 
@@ -715,6 +802,15 @@ c.run()
         -------
         Callable
             Decorator generated
+=======
+        """Decorator for loop your own function into the mainloop.
+
+        Args:
+            time (float, optional): Every this time your func wil be called. Defaults to 60.
+
+        Returns:
+            Callable: ...
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
 
         def _decorator(func: Callable) -> Callable:
@@ -728,6 +824,7 @@ c.run()
         return _decorator
 
     def schedule(self, after: float = 0) -> Callable:
+<<<<<<< HEAD
         """
         Decorator generator that shedule your func x seconds after it being runned.
 
@@ -740,6 +837,15 @@ c.run()
         -------
         Callable
             Decorator generated
+=======
+        """Shedule your func x seconds after it being runned.
+
+        Args:
+            after (float, optional): ... Defaults to 0.
+
+        Returns:
+            Callable: ...
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
 
         def _decorator(func: Callable) -> Callable:
@@ -750,6 +856,7 @@ c.run()
         return _decorator
 
     def add_command(self, name: str) -> Callable:
+<<<<<<< HEAD
         """
         Add your own command to the cli system.
 
@@ -762,6 +869,15 @@ c.run()
         -------
         Callable
             Decorator generated
+=======
+        """Add your own command to the cli system.
+
+        Args:
+            name (str): The name to call it.
+
+        Returns:
+            Callable: ...
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
 
         def _decorator(func: Callable) -> Callable:
@@ -772,6 +888,7 @@ c.run()
         return _decorator
 
     def listen_for(self, event: Event) -> Callable:
+<<<<<<< HEAD
         """
         Listen for an event and start the function if it come
 
@@ -789,6 +906,15 @@ c.run()
         ------
         EventNotActivated
             Raised if event is not activated at initialisation
+=======
+        """Listen for an event and start the function if it come
+
+        Args:
+            event (Event): The event whitch will call it.
+
+        Returns:
+            Callable: ...
+>>>>>>> 33ce3cf (Modifier Client.py)
         """
 
         if self.activated_listeners.get(event) is None:
@@ -809,6 +935,7 @@ c.run()
     # def _on_request_(_, self, *args, **kwargs) -> Any: ...
 
     def execute(self, func: Callable) -> Callable:
+<<<<<<< HEAD
         """
         Execute the following function when func.__name__
 
@@ -827,6 +954,8 @@ c.run()
         AttributeError
             If you name your function after an unkwnown simple event
         """
+=======
+>>>>>>> 33ce3cf (Modifier Client.py)
 
         e_name = "_" + func.__name__ + "_"
 
