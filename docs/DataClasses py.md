@@ -3,6 +3,16 @@ The type `datetime`  come from the module `datetime`.
 
 
 # Enums
+### On
+#enum #simpleevents 
+
+> [!Example]- Items
+> - START
+> - STOP
+> - LOOP_STEP
+> - REQUEST
+> - CHECK_EVENT
+> - POST_STATUS
 
 ### RequestMethod
 #enum #RequestAPI 
@@ -11,7 +21,7 @@ The type `datetime`  come from the module `datetime`.
 > - GET
 > - POST
 > - DELETE
->- PUT
+> - PUT
 > - PATCH
 
 ___
@@ -162,7 +172,7 @@ ___
 
 # Dataclasses
 
-### Aliases
+### Type Aliases
 `URL` -> `str`
 `ID` -> `str`
 `DATETIME` -> `str | datetime`

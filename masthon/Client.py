@@ -26,8 +26,23 @@ SERVER_FORMAT: re.Pattern = re.compile(
 
 class Client:
     """
-    A class representing your application.
-    """
+        The representation of your app
+
+        __init__:
+
+        Parameters
+        ----------
+        token : str
+            the token of it (must be 43 chars)
+        server : str, optional
+            a link to your instance, by default "https://mastodon.social"
+        async_level : int, optional
+            The level of using threading, by default 0
+        used_events : Optional[Event  |  Tuple[Event]], optional
+            A tuple of events you will wait (else they will be never be run), by default None
+        event_reactivity : int, optional
+            Every x seconds events will be checked if they must be run, by default 15 (sec)
+        """
 
     def __init__(
         self,
@@ -38,11 +53,21 @@ class Client:
         used_events: Optional[Event | Tuple[Event]] = None,
         event_reactivity: int = 15,
     ) -> None:
-        """The representation of your aplication.
+        """
+        The representation of your app
 
-        Args:
-            token (str): The token to auth requests to the API.
-            server (str, optional): The url to the instance where your account is registered. Defaults to "https://mastodon.social".
+        Parameters
+        ----------
+        token : str
+            the token of it (must be 43 chars)
+        server : str, optional
+            a link to your instance, by default "https://mastodon.social"
+        async_level : int, optional
+            The level of using threading, by default 0
+        used_events : Optional[Event  |  Tuple[Event]], optional
+            A tuple of events you will wait (else they will be never be run), by default None
+        event_reactivity : int, optional
+            Every x seconds events will be checked if they must be run, by default 15 (sec)
         """
 
         # token format checker
@@ -286,22 +311,41 @@ class Client:
         ratelimit_security: bool = True,
         **kwargs: Dict[str, str],
     ) -> requests.Response:
-        """Make a request to the API.
+        """
+        Make a call to the API at `self.server`
 
-        Args:
-            path (str): The API path.
-            method (some http method): The http method used
-            annonymous (bool, optional): If True, token is omitten. Defaults to False.
-            files (str, optional): Files to post. Defaults to None.
-            additional_data (dict, optional): Data to add that you can put as a kwarg (like `"media_ids[]"`). Defaults to dict().
-            json_data (bool, optional): True to send data in json object
-            ratelimit_security (bool, optional): True to stop the loop if your server raise HTTP 429, ratelimit
+        Parameters
+        ----------
+        path : str
+            The API path requested
+        method : RequestMethod
+            some http methode
+        annonymous : Optional[bool], optional
+            I true, token will not be provided to the API (may result in HTTPError400), by default False
+        files : Optional[Dict[str, Tuple[str, IO, str]]], optional
+            Files to transfer, by default None
+        additional_data : Dict[str, str], optional
+            ..., by default {}
+        json_data : bool, optional
+            Send data as json if true, by default False
+        ratelimit_security : bool, optional
+            Stop the loop if server raise HTTPRateLimit, by default True
 
-        Raises:
-            HTTPError: If status_code not 2xx or 3xx.
+        Returns
+        -------
+        requests.Response
+            The server's response.
 
-        Returns:
-            requests.Response: The response from the API.
+        Raises
+        ------
+        HTTPRateLimit
+            ...
+        HTTP401Error
+            ...
+        HTTPRequestError400
+            ...
+        HTTPServerError500
+            ...
         """
         url = self.server + path
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
@@ -355,18 +399,28 @@ class Client:
         language: Optional[str] = "en",
         **kwargs,
     ) -> List[Status] | Status:
-        """Post a status.
+        """
+        Post a status.
 
-        Args:
-            text (str, optional): The message to send. Defaults to "Hello World from Mastodon API !".
-            medias (List[str], optional): A list of media's ids to link with the status. Defaults to [].
-            visibility (Visibility, optional): ... Defaults to "unlisted".
-            in_reply_to_id (str, optional): If post reply to another, put his id here. Defaults to None.
-            sensitive (NoneType | True, optional): True to make; None to dont. False is making the post sensitive. Defaults to None.
-            language (str, optional): ISO 639 language code for this status. Defaults to "en".
+        Parameters
+        ----------
+        text : str
+            The raw text to send.
+        medias: Optional[List[str]]
+            Pathes to medias to uploads and attach to the post, by default []
+        visibility : Visibility, optional
+            ... of the status, by default Visibility.UNLISTED
+        in_reply_to_id: Optional[str]
+            ID of a status (post will reply to it), by default None
+        sensitive : Optional[Literal[None, True]], optional
+            Mark post as sensitive or not, by default None
+        language : Optional[str], optional
+            ISO 639 language code for this status, by default "en"
 
-        Returns:
-            Status: This status as an object.
+        Returns
+        -------
+        List[Status] | Status
+            Status(es) returned (most time a single)
         """
         ids = list()
         if isinstance(medias, list):
@@ -392,14 +446,20 @@ class Client:
     def upload_media(
         self, src: str, *, type_: MediaType = MediaType.IMAGE, **kwargs
     ) -> MediaAttachment:
-        """Upload a media (syncronously) with /api/v1
+        """
+        Upload a media (syncronously) with /api/v1
 
-        Args:
-            src (str): source of your media file
-            type_ (MediaType, optional): Default to MediaType.IMAGE
+        Parameters
+        ----------
+        src : str
+            source (path) of media to upload
+        type_ : MediaType, optional
+            The type of the media, by default MediaType.IMAGE
 
-        Returns:
-            MediaAttachment: The media uploaded as an object.
+        Returns
+        -------
+        MediaAttachment
+            The media uploaded as an object.
         """
         with open(src, "rb") as f:
             files = {
@@ -422,13 +482,18 @@ class Client:
 
     @LOG()
     def delete_status(self, status: Status | str, **kwargs) -> requests.Response:
-        """Delete given status
+        """
+        Delete given Status.
 
-        Args:
-            status (Status | str): if str, interpreted as the id of the status to delete
+        Parameters
+        ----------
+        status : Status | str
+            The status to delete, or it's id
 
-        Returns:
-            requests.Response: The response returned by the API.
+        Returns
+        -------
+        requests.Response
+            ...
         """
         if isinstance(status, Status):
             id_ = status.id
@@ -469,15 +534,22 @@ class Client:
         min_id: Optional[str] = None,
         **kwargs,
     ) -> List[Notification]:
-        """Gets you notifications feed
+        """
+        Gets you notifications feed
 
-        Args:
-            types (List[NotificationType], optinal): types returned
-            limit (int, optional): ...
-            min_id (str, optional): only newer than this id
+        Parameters
+        ----------
+        types : Iterable[NotificationType], optional
+            Types returned, by default []
+        limit : Optional[int], optional
+            ..., by default None
+        min_id : Optional[str], optional
+            Returns only newer than this id, by default None
 
-        Returns:
-            List[Notification]: ....
+        Returns
+        -------
+        List[Notification]
+            ...
         """
         response = self._raw_request(
             add_url_parameters(
@@ -495,13 +567,18 @@ class Client:
     def get_marker(
         self, timeline: Iterable[TimelineType], **kwargs
     ) -> Dict[Type[TimelineType], Marker]:
-        """Gets the last marker generated of given timelines
+        """
+        Gets the last marker generated of given timelines
 
-        Args:
-            timeline (Iterable[TimelineType]): ...
+        Parameters
+        ----------
+        timeline : Iterable[TimelineType]
+            ...
 
-        Returns:
-            Dict[TimelineType, Marker]: ....
+        Returns
+        -------
+        Dict[Type[TimelineType], Marker]
+            ...
         """
         response = self._raw_request(
             add_url_parameters(
@@ -519,15 +596,18 @@ class Client:
     def post_marker(
         self, timelines: Dict[str, Dict[str, str]], **kwargs
     ) -> Dict[Type[TimelineType], Marker]:
-        """Post and generate markers of given ids
+        """
+        Post and generate markers to given ids
 
-        Args:
-            timeline (Iterable[TimelineType]):
-                Example:
-                {TimelineType.NOTIFICATIONS.value: {"last_read_id": notification.id}}
+        Parameters
+        ----------
+        timelines : Dict[str, Dict[str, str]]
+            Example: `{TimelineType.NOTIFICATIONS.value: {"last_read_id": notification.id}}`
 
-        Returns:
-            Dict[TimelineType, Marker]: markers generated
+        Returns
+        -------
+        Dict[Type[TimelineType], Marker]
+            markers generated
         """
         response = self._raw_request(
             "/api/v1/markers",
@@ -591,13 +671,18 @@ c.run()
 
     # Decorators !
     def looped_every(self, time: float = 60) -> Callable:
-        """Decorator for loop your own function into the mainloop.
+        """
+        Decorator generator for loop your own function into the mainloop.
 
-        Args:
-            time (float, optional): Every this time your func wil be called. Defaults to 60.
+        Parameters
+        ----------
+        time : float, optional
+            Every this time (in seconds) your func wil be called, by default 60 (sec)
 
-        Returns:
-            Callable: ...
+        Returns
+        -------
+        Callable
+            Decorator generated
         """
 
         def _decorator(func: Callable) -> Callable:
@@ -611,13 +696,18 @@ c.run()
         return _decorator
 
     def schedule(self, after: float = 0) -> Callable:
-        """Shedule your func x seconds after it being runned.
+        """
+        Decorator generator that shedule your func x seconds after it being runned.
 
-        Args:
-            after (float, optional): ... Defaults to 0.
+        Parameters
+        ----------
+        after : float, optional
+            In seconds, by default 0 (sec)
 
-        Returns:
-            Callable: ...
+        Returns
+        -------
+        Callable
+            Decorator generated
         """
 
         def _decorator(func: Callable) -> Callable:
@@ -628,13 +718,18 @@ c.run()
         return _decorator
 
     def add_command(self, name: str) -> Callable:
-        """Add your own command to the cli system.
+        """
+        Add your own command to the cli system.
 
-        Args:
-            name (str): The name to call it.
+        Parameters
+        ----------
+        name : str
+            The name to call it
 
-        Returns:
-            Callable: ...
+        Returns
+        -------
+        Callable
+            Decorator generated
         """
 
         def _decorator(func: Callable) -> Callable:
@@ -645,13 +740,23 @@ c.run()
         return _decorator
 
     def listen_for(self, event: Event) -> Callable:
-        """Listen for an event and start the function if it come
+        """
+        Listen for an event and start the function if it come
 
-        Args:
-            event (Event): The event whitch will call it.
+        Parameters
+        ----------
+        event : Event
+            The event witch will call it    
 
-        Returns:
-            Callable: ...
+        Returns
+        -------
+        Callable
+            Decorator generated
+
+        Raises
+        ------
+        EventNotActivated
+            Raised if event is not activated at initialisation
         """
 
         if self.activated_listeners.get(event) is None:
@@ -672,6 +777,24 @@ c.run()
     # def _on_request_(_, self, *args, **kwargs) -> Any: ...
 
     def execute(self, func: Callable) -> Callable:
+        """
+        Execute the following function when func.__name__
+
+        Parameters
+        ----------
+        func : Callable
+            func.__name__ has to be formatted
+
+        Returns
+        -------
+        Callable
+            ...
+
+        Raises
+        ------
+        AttributeError
+            If you name your function after an unkwnown simple event
+        """
 
         e_name = "_" + func.__name__ + "_"
 

@@ -25,9 +25,14 @@ def post_greetings(local_client: Client):                       # default arumen
 # create commands to be used by you
 @client.add_command(name="post")                 # name to use in he cli tool
 def post(local_client: Client, *ms: str):        # mean 1 default argument for all cmds (client) and a list of str : a sentence
-    """post a status"""
+    """post a status"""                          # documentation showed if you type `help post` 
     m = " ".join(ms)                             # rework the sentence to one string
     local_client.post_status(m)                  # use client method `post_status`
+
+# Use simple events
+@client.execute                                  # indicate to the client to run this function before exiting the loop
+def on_stop(local_client: Client):
+    print("Thing to do before stoping, even if an error is raised in the loop")
 
 
 # this run your bot !

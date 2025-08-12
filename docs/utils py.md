@@ -4,7 +4,7 @@ Just some functions and decorators.
 # DEBUG
 #constant #exceptionManaging 
 `bool` 
-If debug is true errors are raised. Else they will be ignored (just printed). You can Change this value inside the file download if you want.
+If debug is true errors are raised. Else they will be ignored (just printed). You can Change this value inside the file downloaded if you want.
 # get_user_input()
 #function #CLI 
 `def get_user_input() -> Optional[str]:`
