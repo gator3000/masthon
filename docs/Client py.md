@@ -15,11 +15,7 @@ ___
 #class #client #exported
 
 The client !
-<<<<<<< HEAD
 [[#__init__()|Initialisation here]]
-=======
-[[#__init__(...)|Initialisation here]]
->>>>>>> cdd0657 (Update testing with my weirds commits on main before)
 
 ### RUNNING
 #mainloop #client 
@@ -135,7 +131,7 @@ Use it to make a request to the api. `path` must start with a `"/"` like `"/api/
 ```py
 def post_status(
 	self,
-	text: str = "Hello World from Mastodon API !",
+	text: str,
 	medias: Optional[List[str]] = [],
 	visibility: Visibility = Visibility.UNLISTED,
 	in_reply_to_id: Optional[str] = None,
@@ -262,3 +258,10 @@ Add your function to the command list.
 
 `def listen_for(self, event: Event) -> Callable:`
 Call your function when `event` is triggered.
+
+### execute()
+#method #client #decorator #simpleevents 
+
+`def execute(self, func: Callable) -> Callable:`
+Use the name of  the decorated function to call it.
+Must be part of `("on_start", "on_loop_step", "on_stop")`.

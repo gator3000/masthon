@@ -1,6 +1,7 @@
 Here I'll explain examples.
-# -1 Installation
+# -1 Installation & token
 
+## Intallation
 You can install the package with this command, replacing \<tag\> by the version you want :
 ```sh
 pip install git+https://gitlab.com/Gator3000/masthon.git@<tag>
@@ -11,9 +12,26 @@ pip install git+https://gitlab.com/Gator3000/masthon.git@v0.2a
 pip install git+https://gitlab.com/Gator3000/masthon.git
 ```
 
+## Token
+To obtain a token, you must create an account on any instance of mastodon ([ -> choose here](https://instances.social)), or, if you don't want to choose, the default instance is (https://mastodon.social).
+
+When you finished created your account, and verifying it (may be long for certain instances (not the default)), you can click on "preferences" (on th right panel), then "development" on the left menu, and the button "New Application" (top right).
+
+Now you fill the "application name" field, set if you want the "app website", let the redirect uri if you don't know what it is, and check at least :
+- read (in red)
+- profile (already checked)
+- write (in red)
+- push (in red)
+This is the scope of your app. If one day you get an error about auth ([[Exceptions py#HTTP401Error]] or some [[Exceptions py#HTTPRequestError400]]), the problem can come from here.
+
+Then, click on "submit" (bottom of the page), and your app is now created.
+
+To get your token, click on your app name, copy the 3rd line ("your acces token").
+Be careful and DO NOT share these tokens with anyone !
+ 
 ___
 # 0 Get started
-#loopedfunctions #CLI #scheduling 
+#loopedfunctions #CLI #scheduling #simpleevents 
 
 This example allow you to understand how to set cyclic actions, commands and scheduled functions. It use the client object [[Client py#Client]] and some #decoratorGenerator to start #function
 
@@ -28,34 +46,35 @@ from masthon import Client, DEFAULT_MESSAGE
 
 from time import asctime
 
-  
+
 # create a client
 client = Client("YOUR TOKEN HERE")
-  
 
 # shedule client actions after time indicated
-@client.schedule(5) # in seconds
-def say_hello(local_client: Client): # default arument passed to back_tasks
-	local_client.post_status("Hello World from the API !") # use client method `post_status`
-
+@client.schedule(5)                                        # in seconds
+def say_hello(local_client: Client):                       # default arument passed to back_tasks
+    local_client.post_status("Hello World from the API !") # use client method `post_status`
 
 # shedule client cyclic actions
-@client.looped_every(180) # in seconds = 3 minutes
-def post_greetings(local_client: Client): # default arument passed to back_tasks
-	local_client.post_status(DEFAULT_MESSAGE.format(asctime())) # use client method `post_status`
-
+@client.looped_every(180)                                       # in seconds = 3 minutes
+def post_greetings(local_client: Client):                       # default arument passed to back_tasks
+    local_client.post_status(DEFAULT_MESSAGE.format(asctime())) # use client method `post_status`
 
 # create commands to be used by you
-@client.add_command(name="post") # name to use in he cli tool
-def post(local_client: Client, *ms: str): # 1 default argument for all cmds (client) and a list of str : a sentence
-	"""post a status"""
-	m = " ".join(ms) # rework the sentence to one string
-	local_client.post_status(m) # use client method `post_status`
+@client.add_command(name="post")                 # name to use in he cli tool
+def post(local_client: Client, *ms: str):        # mean 1 default argument for all cmds (client) and a list of str : a sentence
+    """post a status"""                          # documentation showed if you type `help post` 
+    m = " ".join(ms)                             # rework the sentence to one string
+    local_client.post_status(m)                  # use client method `post_status`
 
+# Use simple events
+@client.execute                                  # indicate to the client to run this function before exiting the loop
+def on_stop(local_client: Client):
+    print("Thing to do before stoping, even if an error is raised in the loop")
 
 
 # this run your bot !
-client.run()
+client.run() 
 ```
 
 > [!NOTE]

@@ -38,6 +38,11 @@ def post(
     m = " ".join(ms)  # rework the sentence to one string
     local_client.post_status(m)  # use client method `post_status`
 
+# Use simple events
+@client.execute                                  # indicate to the client to run this function before exiting the loop
+def on_stop(local_client: Client):
+    print("Thing to do before stoping, even if an error is raised in the loop")
+
 
 # this run your bot !
 client.run()

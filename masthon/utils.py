@@ -7,7 +7,7 @@ from enum import Enum
 import traceback
 import sys, select
 
-DEBUG = True  # If debug is true errors are raised. Else they will be ignored (just printed).
+DEBUG = False  # If debug is true errors are raised. Else they will be ignored (just printed).
 
 
 def get_user_input() -> Optional[str]:

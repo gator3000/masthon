@@ -191,7 +191,7 @@ def APIDATACLASS(cls):
 
 
 # Enums
-class On(Enum):
+class On(Enum): # not really used but I keep the idea
     START = "start"
     STOP = "stop"
     LOOP_STEP = "loop_step"

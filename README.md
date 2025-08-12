@@ -13,7 +13,7 @@ ___
 - Masthon engine
 	- [x] main loop -> #mainloop
 	- [x] asynchronous (actually, threading) #threading
-	- Simple events #simpleevents
+	- Simple events #simpleevents [[Client py#execute()]]
 		- [x] on_start
 		- [x] on_stop
 - Server Interactions
@@ -57,7 +57,7 @@ and more at [[Client py]].
 ___
 # Get Started
 ## Install
--> Go to [[Examples#-1 Installation]]
+-> Go to [[Examples#-1 Installation & token]]
 ## How it works
 
 The package is organized around a main class : The [[Client py]]. It contain your app infos a mainloop and some decorator generators like `@schedule()` ([[Client py#scehdule()]]).
