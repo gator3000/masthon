@@ -15,24 +15,24 @@ ___
 #class #client #exported
 
 The client !
-[[#__init__(...)|Initialisation here]]
+[[#__init__()|Initialisation here]]
 
 ### RUNNING
 #mainloop #client 
 
-`bool` : `True` if the loop is running else, `False`. You can change it to stop the loop but use instead [[#`stop(...)`]].
+`bool` : `True` if the loop is running else, `False`. You can change it to stop the loop but use instead [[#`stop()`]].
 
-### \_\_repr__(...)
+### \_\_repr__()
 #method #client #dunder
 
 ...
 
-### \_\_format__(...)
+### \_\_format__()
 #method #client #dunder 
 
 Allowing user to display the client with token or without. 
 
-### \_\_init__(...)
+### \_\_init__()
 #method #constructor #client #dunder #events
 
 ```py
@@ -65,17 +65,17 @@ def __init__(
 > Every x seconds, client will check possible events triggered
 
 
-### stop(...)
+### stop()
 #method #mainloop #client
 
 Use this method to stop manually the mainloop.
 
-### run(...)
+### run()
 #method #mainloop #client 
 
 Start the mainloop. Return `None` when loop is finished or raise a `RuntimeError` if you try to start 2 instances of the same client at the same time.
 
-### \_raw_request(...)
+### \_raw_request()
 #method #client #RequestAPI
 
 ```py
@@ -93,7 +93,7 @@ def _raw_request(
 ```
 Use it to make a request to the api. `path` must start with a `"/"` like `"/api/v1/statuses`.
 
-### post_status(...)
+### post_status()
 #method #client #RequestAPI #statuses 
 
 ```py
@@ -113,7 +113,7 @@ def post_status(
 > [!Example] References
 > [[DataClasses py#Status]]
 
-### upload_media(...)
+### upload_media()
 #method #client #RequestAPI 
 
 ```py
@@ -126,13 +126,13 @@ def upload_media(
 > [!Example] References
 > [[DataClasses py#MediaAttachment]]
 
-### delete_status(...)
+### delete_status()
 #method #client #RequestAPI #statuses
 
 `def delete_status(self, status: Status | str, **kwargs) -> requests.Response:`
 Just delete a status with its id or its object.
 
-### unread_notifications_count(...)
+### unread_notifications_count()
 #method #client #RequestAPI #notifications
 
 ```py
@@ -142,7 +142,7 @@ def unread_notifications_count(
 ```
 ...
 
-### get_notifications(...)
+### get_notifications()
 #method #client #RequestAPI #notifications
 
 ```py
@@ -159,7 +159,7 @@ def get_notifications(
 > [!Example] References
 > [[DataClasses py#Notification]]
 
-### get_marker(...)
+### get_marker()
 #method #client #RequestAPI #notifications #timelines #markers
 
 ```py
@@ -173,7 +173,7 @@ def get_marker(
 > [[DataClasses py#TimelineType]]
 > [[DataClasses py#Marker]]
 
-### post_marker(...)
+### post_marker()
 #method #client #RequestAPI #notifications #timelines #markers 
 
 ```py
@@ -187,25 +187,25 @@ def post_marker(
 > [[DataClasses py#TimelineType]]
 > [[DataClasses py#Marker]]
 
-### looped_every(...)
+### looped_every()
 #method #client #decoratorGenerator #scheduling #loopedfunctions
 
 `def looped_every(self, time: float = 60) -> Callable:`
 Return a decorator to make your function executed every \<`time`\> seconds.
 
-### schedule(...)
+### schedule()
 #method #client #decoratorGenerator #scheduling 
 
 `def schedule(self, after: float = 0) -> Callable:`
 Make your function executed \<`after`\> seconds after your run the client.
 
-### add_command(...)
+### add_command()
 #method #client #decoratorGenerator #CLI 
 
 `def add_command(self, name: str) -> Callable:`
 Add your function to the command list.
 
-### listen_for(...)
+### listen_for()
 #method #client #decoratorGenerator #events 
 
 `def listen_for(self, event: Event) -> Callable:`

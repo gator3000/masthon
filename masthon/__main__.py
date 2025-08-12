@@ -6,7 +6,7 @@ import sys
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == "-v":
-            print("Made with <3 by  @gator3000@mastodon.social")
+            print("Made with <3 by   @gator3000@mastodon.social")
             print("Issues          : https://gitlab.com/Gator3000/masthon/-/issues")
             print("Documentation   : https://gator3000.gitlab.io/masthon/")
             print("Discord Server  : https://discord.gg/2CVuXXTUVr")
