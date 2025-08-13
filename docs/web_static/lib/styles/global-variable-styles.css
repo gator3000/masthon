@@ -1,1 +1,1 @@
-:root body{--line-width:min(60vw, calc(100vw - 2em));--line-width-adaptive:min(60vw, calc(100vw - 2em));--file-line-width:min(60vw, calc(100vw - 2em));--sidebar-width:min(20vw, 80vw)}body{--zoom-factor:1!important;--font-text-size:16px!important;--indent-size:4}
+:root body{--line-width:min(70vw, calc(100vw - 2em));--line-width-adaptive:min(70vw, calc(100vw - 2em));--file-line-width:min(70vw, calc(100vw - 2em));--sidebar-width:min(15vw, 80vw)}body{--zoom-factor:1!important;--font-text-size:16px!important;--indent-size:4}
