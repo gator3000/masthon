@@ -1,5 +1,6 @@
 # The Docker image that will be used to build your app
 image: alpine:latest
+
 create-pages:
   stage: deploy
   pages:
@@ -9,7 +10,6 @@ create-pages:
     # This ensures that only pushes to the default branch will trigger
     # a pages deploy
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  # Functions that should be executed before the build script is run
   artifacts:
     paths:
       - docs/web_static
