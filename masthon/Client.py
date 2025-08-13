@@ -21,7 +21,8 @@ import traceback
 TOKEN_FORMAT: re.Pattern = re.compile(r"^[A-Za-z0-9\-_]{43}$")
 # SERVER_FORMAT: re.Pattern = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$")
 SERVER_FORMAT: re.Pattern = re.compile( r"^https?://([a-zA-Z0-9-]{1,61}\.)+[a-zA-Z]{2,}(/api/v[0-9]+)?/?$") #pour ajouter api/v1
-apiversion="/api/v1"
+apiversion1="/api/v1"
+apiversion2="/api/v2"
 class Client:
     """
     The representation of your app
@@ -45,7 +46,7 @@ class Client:
     def __init__(
         self,
         token: str,
-        server: str = f"https://mastodon.social{apiversion}",
+        server: str = f"https://mastodon.social",
         *,
         async_level: int = 0,
         used_events: Optional[Event | Tuple[Event]] = None,
@@ -345,7 +346,7 @@ class Client:
         HTTPServerError500
             ...
         """
-        url = self.server + apiversion + path
+        url = self.server + path
         print(url)
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
         data = {**kwargs, **additional_data}
@@ -434,7 +435,7 @@ class Client:
 
         
         response = self._raw_request(
-            path="/statuses",
+            path=f"{apiversion1}/statuses",
             method=RequestMethod.POST,
             status=text,
             visibility=visibility.value,
