@@ -26,23 +26,23 @@ SERVER_FORMAT: re.Pattern = re.compile(
 
 class Client:
     """
-        The representation of your app
+    The representation of your app
 
-        __init__:
+    __init__:
 
-        Parameters
-        ----------
-        token : str
-            the token of it (must be 43 chars)
-        server : str, optional
-            a link to your instance, by default "https://mastodon.social"
-        async_level : int, optional
-            The level of using threading, by default 0
-        used_events : Optional[Event  |  Tuple[Event]], optional
-            A tuple of events you will wait (else they will be never be run), by default None
-        event_reactivity : int, optional
-            Every x seconds events will be checked if they must be run, by default 15 (sec)
-        """
+    Parameters
+    ----------
+    token : str
+        the token of it (must be 43 chars)
+    server : str, optional
+        a link to your instance, by default "https://mastodon.social"
+    async_level : int, optional
+        The level of using threading, by default 0
+    used_events : Optional[Event  |  Tuple[Event]], optional
+        A tuple of events you will wait (else they will be never be run), by default None
+    event_reactivity : int, optional
+        Every x seconds events will be checked if they must be run, by default 15 (sec)
+    """
 
     def __init__(
         self,
