@@ -657,6 +657,23 @@ class Client:
             convert_to_enum(t, TimelineType): Marker(**el)
             for t, el in response.json().items()
         }
+    @LOG()
+    def Token_access(self,clientid :str,clientsecret:str,code: str)-> token:str:
+        "permet de récuperer le token d'access"
+        try:
+            url="/oauth/token"
+            data = {
+                "client_id": clientid,
+                "client_secret": clientsecret,
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "urn:ietf:wg:oauth:2.0:oob"
+            }
+            response=self._raw_request(path=url,method=RequestMethod.POST,data=data)
+            token= response.json().get("access_token")
+            return token
+        except as e:
+            print(e)
 
     @LOG()
     def Token_access(self, clientid: str, clientsecret: str, code: str) -> str:
