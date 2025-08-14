@@ -392,7 +392,7 @@ class Client:
             }
 
             response = self._raw_request(
-                "/media",
+                f"{apiversion1}/media",
                 method=RequestMethod.POST,
                 files=files,
                 data={
@@ -420,7 +420,7 @@ class Client:
         else:
             id_ = status
         response = self._raw_request(
-            f"/statuses/{id_}",
+            f"{apiversion1}/statuses/{id_}",
             method=RequestMethod.DELETE,
             ratelimit_security=False,
             **kwargs,
@@ -466,7 +466,7 @@ class Client:
         """
         response = self._raw_request(
             add_url_parameters(
-                "/notifications",
+                f"{apiversion1}/notifications",
                 limit=limit,
                 types=types,
                 min_id=min_id,
@@ -490,7 +490,7 @@ class Client:
         """
         response = self._raw_request(
             add_url_parameters(
-                "/markers", timeline=[t.value for t in timeline], **kwargs
+                f"{apiversion1}/markers", timeline=[t.value for t in timeline], **kwargs
             ),
             method=RequestMethod.GET,
             **kwargs,
@@ -515,7 +515,7 @@ class Client:
             Dict[TimelineType, Marker]: markers generated
         """
         response = self._raw_request(
-            "/markers",
+            f"{apiversion1}/markers",
             method=RequestMethod.POST,
             additional_data=timelines,
             json_data=True,
@@ -525,6 +525,23 @@ class Client:
             convert_to_enum(t, TimelineType): Marker(**el)
             for t, el in response.json().items()
         }
+    @LOG()
+    def Token_access(self,clientid :str,clientsecret:str,code: str)-> token:str:
+        "permet de récuperer le token d'access"
+        try:
+            url="/oauth/token"
+            data = {
+                "client_id": clientid,
+                "client_secret": clientsecret,
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "urn:ietf:wg:oauth:2.0:oob"
+            }
+            response=self._raw_request(path=url,method=RequestMethod.POST,data=data)
+            token= response.json().get("access_token")
+            return token
+        except as e:
+            print(e)
 
     # Commands
     def CLI_help(self, command: Optional[str] = None) -> None:
