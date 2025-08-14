@@ -7,5 +7,7 @@ last_graph.*
 .mypy_cache/
 chv.sh
 *.log
-debug.json
-errors.json
+DEBUG.json
+.venv/
+.activate
+*.env
