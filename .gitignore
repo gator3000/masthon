@@ -6,3 +6,6 @@ last_graph.*
 .vscode/
 .mypy_cache/
 chv.sh
+*.log
+debug.json
+errors.json
