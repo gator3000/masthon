@@ -1,3 +1,6 @@
+from logger import Logger, str_config
+
+config = """
 {
     "name": "Masthon Logger",
     "targets": {
@@ -33,3 +36,8 @@
         }
     }
 }
+"""
+
+
+logger = Logger(str_config(config))
+logger.debug("Logger created")

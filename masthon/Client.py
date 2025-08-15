@@ -10,6 +10,7 @@ from .Exceptions import *
 from .utils import *
 from .DataClasses import *
 from .Events import Listeners
+from .log import logger
 
 import re
 import time
@@ -129,13 +130,14 @@ class Client:
         self.cli_last_error: Optional[Exception] = None
 
         if not (0 <= async_level <= 2):
-            print(
-                "\033[1m\033[91m[WARN]\033[93m Async level unknown >\033[0m default set to 0"
+            logger.warning(
+                "Async level unknown, default to `0`", async_level=async_level
             )
             async_level = 0
         self._async_level = async_level
 
         self.process: List[tg.Thread] = list()
+        self.cli_process: List[ExceptionDesignedThread] = list()
 
         self.RUNNING = False
 
@@ -168,13 +170,14 @@ class Client:
                 pass  # not used
             case 1:
                 self.process.clear()  # cleared because all process down
+                self.cli_process.clear()  # cleared because all process down
             case 2:
                 for i, p in enumerate(self.process):
                     if not p.is_alive():
                         del self.process[
                             i
                         ]  # juste delete process down and let other run
-        self.process = list()
+        # self.process = list()
 
         # Sheduled functions (executed one time)
         executed = list()
@@ -224,6 +227,16 @@ class Client:
                     self.process.append(tg.Thread(target=self._event_handling))
                     self.process[-1].start()
 
+        match self._async_level:
+            case 0:
+                self._cli_handling()
+            case 1:
+                self.cli_process.append(ExceptionDesignedThread(target=self._event_handling))
+                self.cli_process[-1].start()
+            case 2:
+                self.cli_process.append(ExceptionDesignedThread(target=self._event_handling))
+                self.cli_process[-1].start()
+
         # End
         match self._async_level:
             case 0:
@@ -232,8 +245,42 @@ class Client:
                 # Join all process
                 for p in self.process:
                     p.join()
+                for i, p in enumerate(self.cli_process):
+                    if not p.is_alive():
+                        if isinstance(p.exception, BaseException):
+                            raise p.exception
+                        del self.cli_process[i]
             case 2:
-                pass
+                for i, p in enumerate(self.cli_process):
+                    if not p.is_alive():
+                        if isinstance(p.exception, BaseException):
+                            raise p.exception
+                        del self.cli_process[i]
+
+    def _cli_handling(self):
+        u_input = get_user_input()
+        if u_input is not None:
+            try:
+                # Get command from inputed string
+                cmd, *cmdargs = u_input.split(" ")
+                if cmd not in self.commands:
+                    raise CommandNotFound(
+                        f"Command `{cmd}` not found. Type help to see commands that you can use `help` or `h`."
+                    )
+                try:
+                    self.commands[cmd](self, *cmdargs)
+                except Exception as e:
+                    self.cli_last_error = e
+                    if isinstance(e, RealException):
+                        raise e.args[0] from e.args[0]
+                    raise CommandExecutionError(
+                        f"An exception as occured while executing the command named `{cmd}`.",
+                        e,
+                    )
+            except CLIException as e:
+                logger.error(
+                    f"{e.__module__}.{e.__class__.__name__}: {" ".join([repr(a) for a in e.args])}"
+                )
 
     def _event_handling(self) -> None:
         self.last_listened = time.time()
@@ -273,29 +320,6 @@ class Client:
 
         try:
             while self.RUNNING:
-                u_input = get_user_input()
-                if u_input:
-                    try:
-                        # Get command from inputed string
-                        cmd, *cmdargs = u_input.split(" ")
-                        if cmd not in self.commands:
-                            raise CommandNotFound(
-                                f"Command `{cmd}` not found. Type help to see commands that you can use `help` or `h`."
-                            )
-                        try:
-                            self.commands[cmd](self, *cmdargs)
-                        except Exception as e:
-                            self.cli_last_error = e
-                            if isinstance(e, RealException):
-                                raise e.args[0] from e.args[0]
-                            raise CommandExecutionError(
-                                f"An exception as occured while executing the command named `{cmd}`.",
-                                e,
-                            )
-                    except CLIException as e:
-                        print(
-                            f"\033[91m\033[1m{e.__class__.__name__}: \033[0m\033[91m{e.args[0]}\033[0m"
-                        )
                 self._step(i)
                 i += 1
         finally:
@@ -303,7 +327,7 @@ class Client:
             self.RUNNING = False
 
     @TRY(HTTPError)
-    @LOG(True, True, args_max_lenght=64)
+    @LOG(True, True)
     def _raw_request(
         self,
         path: str,
@@ -477,9 +501,7 @@ class Client:
             The media uploaded as an object.
         """
         with open(src, "rb") as f:
-            files = {
-                "file": (src.split("/")[-1], f, type_.value)
-            }
+            files = {"file": (src.split("/")[-1], f, type_.value)}
 
             response = self._raw_request(
                 f"{apiversion1}/media",
@@ -778,7 +800,7 @@ c.run()
         Parameters
         ----------
         event : Event
-            The event witch will call it    
+            The event witch will call it
 
         Returns
         -------
@@ -806,6 +828,7 @@ c.run()
     def _on_start_(_, self) -> None: ...
     def _on_loop_step_(_, self, i: int) -> None: ...
     def _on_stop_(_, self) -> None: ...
+
     # def _on_request_(_, self, *args, **kwargs) -> Any: ...
 
     def execute(self, func: Callable) -> Callable:
@@ -830,15 +853,19 @@ c.run()
 
         e_name = "_" + func.__name__ + "_"
 
-        if getattr(self, e_name, None) is None or e_name not in ("_on_start_", "_on_loop_step_", "_on_stop_"):
+        if getattr(self, e_name, None) is None or e_name not in (
+            "_on_start_",
+            "_on_loop_step_",
+            "_on_stop_",
+        ):
             raise AttributeError("Event not known.")
         setattr(self, e_name, func)
 
         return func
-    
-    #* Maybe one day it will be possible to modify reqests before they will be sent
+
+    # * Maybe one day it will be possible to modify reqests before they will be sent
     # def __request_modifier__(func: Callable) -> Callable:
     #     def _wrapper(*args, **kwargs) -> Any:
     #         return func(**args, **kwargs)
-        
+
     #     return _wrapper

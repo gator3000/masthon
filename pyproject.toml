@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "Masthon"
 version = "v0.5a"
 dependencies = [
-  "requests"
+  "requests",
   "logger @ git+https://gitlab.com/Gator3000/logger.git@main"
 ]
 requires-python = ">=3.10"
