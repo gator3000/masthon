@@ -2,12 +2,16 @@ certifi==2025.8.3
 charset-normalizer==3.4.3
 dataclasses==0.6
 DateTime==5.5
-format @ git+https://gitlab.com/Gator3000/format.git@b89e9f186afb1b221100ea1dbbecc5a8f190ed48
 idna==3.10
-logger @ git+https://gitlab.com/Gator3000/logger.git@e764b573e5a4cd0eecb69222933a534ad8060e3d
+logger @ git+https://gitlab.com/Gator3000/logger.git
+mypy==1.17.1
+mypy_extensions==1.1.0
+pathspec==0.12.1
 pytz==2025.2
 requests==2.32.4
 setuptools==80.9.0
+types-requests==2.32.4.20250809
 typing==3.7.4.3
+typing_extensions==4.14.1
 urllib3==2.5.0
 zope.interface==7.2

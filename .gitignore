@@ -11,3 +11,5 @@ DEBUG.json
 .venv/
 .activate
 *.env
+.mypy.ini
+.stubs/
