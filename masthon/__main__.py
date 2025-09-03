@@ -2,7 +2,6 @@ from time import asctime
 import sys
 import os
 from .__init__ import Client, __version__ as version, DEFAULT_MESSAGE
-
 # from masthon import Client, __version__ as version, DEFAULT_MESSAGE
 
 if __name__ == "__main__":
