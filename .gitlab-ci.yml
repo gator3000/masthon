@@ -1,4 +1,33 @@
 # The Docker image that will be used to build your app
+image: python:3.11  # Utilisé par défaut pour les jobs sauf create-pages
+
+stages:
+  - lint
+  - security
+  - deploy
+
+pylint:
+  image: python:3.11
+  stage: lint
+  script:
+    - pip install pylint
+    - pylint masthon/ --fail-under=7.0 --output-format=colorized
+  rules:
+    - when: always  # Lance le job à chaque push, sur toutes les branches
+  allow_failure: true
+
+
+bandit:
+  image: python:3.11
+  stage: security
+  script:
+    - pip install bandit
+    - bandit -r masthon/ --exclude venv
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "main"'  # À chaque push sur les branches autres que main
+    - if: '$CI_COMMIT_BRANCH == "main"'  # Et aussi sur main après merge
+
+
 image: alpine:latest
 
 create-pages:

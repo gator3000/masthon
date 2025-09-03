@@ -525,6 +525,7 @@ class Client:
             convert_to_enum(t, TimelineType): Marker(**el)
             for t, el in response.json().items()
         }
+        
     @LOG()
     def Token_access(self,clientid :str,clientsecret:str,code: str)-> token:str:
         "permet de récuperer le token d'access"
