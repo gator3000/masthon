@@ -8,14 +8,13 @@ from typing import (
     Dict,
     Any,
     Union,
-    Iterable,
     TypeAlias,
     TypeVar,
     Type,
     TYPE_CHECKING,
 )
 import types
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, EnumType
 from datetime import datetime
 
