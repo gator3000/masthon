@@ -26,7 +26,7 @@ bandit:
   rules:
     - if: '$CI_COMMIT_BRANCH != "main"'  # À chaque push sur les branches autres que main
     - if: '$CI_COMMIT_BRANCH == "main"'  # Et aussi sur main après merge
-
+  allow_failure: False
 
 image: alpine:latest
 
