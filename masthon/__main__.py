@@ -1,8 +1,9 @@
-from .__init__ import Client, __version__ as version, DEFAULT_MESSAGE
-# from masthon import Client, __version__ as version, DEFAULT_MESSAGE
 from time import asctime
 import sys
 import os
+from .__init__ import Client, __version__ as version, DEFAULT_MESSAGE
+# from masthon import Client, __version__ as version, DEFAULT_MESSAGE
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == "-v":

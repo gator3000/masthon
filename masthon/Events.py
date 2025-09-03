@@ -1,9 +1,6 @@
-from typing import Self, Dict
-from enum import Enum
-
+from typing import Dict
 from .DataClasses import *
 from .Exceptions import *
-
 import json
 
 
@@ -33,7 +30,7 @@ class Listeners:
     def listen_notification(self) -> ListenerOutput:
         try:
             number: int = self.client.unread_notifications_count()
-            notifications: List[Notification] = list()
+            notifications: List[Notification] = []
             if number > 0:
                 notifications = self.client.get_notifications(limit=number)
                 # reset unread marker
@@ -49,8 +46,8 @@ class Listeners:
                 return ListenerOutput(EventStatus.ERROR, json.loads(e.args[2]))
             else:
                 return ListenerOutput(EventStatus.ERROR, {"error": "unknow"})
-        else:
-            return ListenerOutput(
+        
+        return ListenerOutput(
                 status=EventStatus.TRIGGERED if number > 0 else EventStatus.NONE,
                 data={"count": number, "notifications": notifications, "notification": notifications[-1] if len(notifications) > 0 else None},
             )
@@ -58,7 +55,7 @@ class Listeners:
     def listen_mention(self) -> ListenerOutput:
         try:
             number: int = self.client.unread_notifications_count(types=[NotificationType.MENTION])
-            notifications: List[Notification] = list()
+            notifications: List[Notification] = []
             if number > 0:
                 notifications = self.client.get_notifications(types=[NotificationType.MENTION], limit=number)
                 # reset unread marker
@@ -74,8 +71,8 @@ class Listeners:
                 return ListenerOutput(EventStatus.ERROR, json.loads(e.args[2]))
             else:
                 return ListenerOutput(EventStatus.ERROR, {"error": "unknow"})
-        else:
-            return ListenerOutput(
+
+        return ListenerOutput(
                 status=EventStatus.TRIGGERED if number > 0 else EventStatus.NONE,
                 data={"count": number, "notifications": notifications, "notification": notifications[-1] if len(notifications) > 0 else None},
             )
