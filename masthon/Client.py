@@ -10,7 +10,6 @@ from .Exceptions import *
 from .utils import *
 from .DataClasses import *
 from .Events import Listeners
-from .log import logger
 
 import re
 import time
@@ -20,10 +19,10 @@ import traceback
 
 
 TOKEN_FORMAT: re.Pattern = re.compile(r"^[A-Za-z0-9\-_]{43}$")
-SERVER_FORMAT: re.Pattern = re.compile(
-    r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$"
-)
-
+SERVER_FORMAT: re.Pattern = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$")
+# SERVER_FORMAT: re.Pattern = re.compile( r"^https?://([a-zA-Z0-9-]{1,61}\.)+[a-zA-Z]{2,}(/api/v[0-9]+)?/?$") #pour ajouter api/v1
+apiversion1="/api/v1"
+apiversion2="/api/v2"
 
 class Client:
     """
@@ -86,7 +85,7 @@ class Client:
             raise TypeError(
                 f"Server type `{type(server)}` not supported must be a str."
             )
-        if not SERVER_FORMAT.match(server):
+        if not SERVER_FORMAT.match(server): # changer pour adapter a https://vzhbh/api/v1
             raise ValueError("Server url doesn't match the format.")
         if not server.startswith("https://") and not server.startswith("http://"):
             server = "https://" + server
@@ -128,14 +127,13 @@ class Client:
         self.cli_last_error: Optional[Exception] = None
 
         if not (0 <= async_level <= 2):
-            logger.warning(
-                "Async level unknown, default to `0`", async_level=async_level
+            print(
+                "\033[1m\033[91m[WARN]\033[93m Async level unknown >\033[0m default set to 0"
             )
             async_level = 0
         self._async_level = async_level
 
         self.process: List[tg.Thread] = list()
-        self.cli_process: List[ExceptionDesignedThread] = list()
 
         self.RUNNING = False
 
@@ -168,14 +166,13 @@ class Client:
                 pass  # not used
             case 1:
                 self.process.clear()  # cleared because all process down
-                self.cli_process.clear()  # cleared because all process down
             case 2:
                 for i, p in enumerate(self.process):
                     if not p.is_alive():
                         del self.process[
                             i
                         ]  # juste delete process down and let other run
-        # self.process = list()
+        self.process = list()
 
         # Sheduled functions (executed one time)
         executed = list()
@@ -224,17 +221,6 @@ class Client:
                     self.process.append(tg.Thread(target=self._event_handling))
                     self.process[-1].start()
 
-        # CLI
-        match self._async_level:
-            case 0:
-                self._cli_handling()
-            case 1:
-                self.cli_process.append(ExceptionDesignedThread(target=self._event_handling))
-                self.cli_process[-1].start()
-            case 2:
-                self.cli_process.append(ExceptionDesignedThread(target=self._event_handling))
-                self.cli_process[-1].start()
-
         # End
         match self._async_level:
             case 0:
@@ -243,39 +229,8 @@ class Client:
                 # Join all process
                 for p in self.process:
                     p.join()
-                for j, p in enumerate(self.cli_process):
-                    if not p.is_alive():
-                        if isinstance(p.exception, BaseException):
-                            raise p.exception
-                        del self.cli_process[j]
             case 2:
-                for j, p in enumerate(self.cli_process):
-                    if not p.is_alive():
-                        if isinstance(p.exception, BaseException):
-                            raise p.exception
-                        del self.cli_process[j]
-
-    def _cli_handling(self):
-        u_input = get_user_input()
-        if u_input is not None:
-            try:
-                # Get command from inputed string
-                cmd, *cmdargs = u_input.split(" ")
-                if cmd not in self.commands:
-                    raise CommandNotFound(
-                        f"Command `{cmd}` not found. Type help to see commands that you can use `help` or `h`."
-                    )
-                try:
-                    self.commands[cmd](self, *cmdargs)
-                except Exception as e:
-                    self.cli_last_error = e
-                    if isinstance(e, RealException):
-                        raise e.args[0] from e.args[0]
-                    raise CommandExecutionError(f"An exception as occured while executing the command named `{cmd}`.") from e
-            except CLIException as e:
-                logger.error(
-                    f"{e.__module__}.{e.__class__.__name__}: {" ".join([repr(a) for a in e.args])}"
-                )
+                pass
 
     def _event_handling(self) -> None:
         self.last_listened = time.time()
@@ -314,6 +269,29 @@ class Client:
 
         try:
             while self.RUNNING:
+                u_input = get_user_input()
+                if u_input:
+                    try:
+                        # Get command from inputed string
+                        cmd, *cmdargs = u_input.split(" ")
+                        if cmd not in self.commands:
+                            raise CommandNotFound(
+                                f"Command `{cmd}` not found. Type help to see commands that you can use `help` or `h`."
+                            )
+                        try:
+                            self.commands[cmd](self, *cmdargs)
+                        except Exception as e:
+                            self.cli_last_error = e
+                            if isinstance(e, RealException):
+                                raise e.args[0] from e.args[0]
+                            raise CommandExecutionError(
+                                f"An exception as occured while executing the command named `{cmd}`.",
+                                e,
+                            )
+                    except CLIException as e:
+                        print(
+                            f"\033[91m\033[1m{e.__class__.__name__}: \033[0m\033[91m{e.args[0]}\033[0m"
+                        )
                 self._step(i)
                 i += 1
         finally:
@@ -321,7 +299,7 @@ class Client:
             self.RUNNING = False
 
     @TRY(HTTPError)
-    @LOG(True, True)
+    @LOG(True, True, args_max_lenght=64)
     def _raw_request(
         self,
         path: str,
@@ -370,6 +348,7 @@ class Client:
             ...
         """
         url = self.server + path
+        # print(url)
         auth = {"Authorization": f"Bearer {self.token}"} if not annonymous else dict()
         data = {**kwargs, **additional_data}
         args = {"json": data} if json_data else {"data": data}
@@ -382,36 +361,40 @@ class Client:
             response = requests.request(
                 method.value.upper(), url, headers=auth, files=files, json=data
             )
+        self.check_statuscode(response,ratelimit_security)
 
-        if response.status_code == 429:
-            if ratelimit_security:
-                self.stop()
-                logger.critical(f"Rate Limited by {self.server}")
-                raise HTTPRateLimit("429 Too many requests: Slow down !")
-            logger.warning(f"Rate Limited by {self.server}")
+        return response
+    
+    def check_statuscode(self,response, ratelimit_security: bool = True):
+        try:
+            error_msg = response.json().get("error", "Unknown error")
+        except ValueError:
+            error_msg = "Response body is not valid JSON"
 
         match response.status_code // 100:
             case 4:
                 if response.status_code == 401:
                     raise HTTP401Error(
-                        "401 Unauthorized: Your acces token is invalid",
+                        "401 Unauthorized: Your access token is invalid",
                         response.status_code,
                     )
-                raise HTTPRequestError400(
-                    f"The request is invalid : HTTP Error {response.status_code}",
-                    "\n",
-                    response.json()["error"],
-                    response.status_code,
-                )
+                elif response.status_code == 429:
+                    if ratelimit_security:
+                        self.stop()
+                    raise HTTPRateLimit("429 Too many requests: Slow down!")
+                else:
+                    raise HTTPRequestError400(
+                        f"The request is invalid : HTTP Error {response.status_code}",
+                        error_msg,
+                        response.status_code,
+                    )
             case 5:
                 raise HTTPServerError500(
-                    f"An error as occured from the server `{self.server}` : HTTP Error {response.status_code}",
+                    f"An error as occurred from the server `{self.server}` : HTTP Error {response.status_code}",
                     response.status_code,
                 )
             case _:
-                pass
-        return response
-
+                pass # a changer pour et ajouter case pour erreur type 300 (redirection),200(success),100(informationnel)
     @LOG()
     def post_status(
         self,
@@ -450,8 +433,10 @@ class Client:
         if isinstance(medias, list):
             for media_src in medias:
                 ids.append(str(self.upload_media(media_src).id))
+
+        
         response = self._raw_request(
-            "/api/v1/statuses",
+            path=f"{apiversion1}/statuses",
             method=RequestMethod.POST,
             status=text,
             visibility=visibility.value,
@@ -461,10 +446,12 @@ class Client:
             language=language,
             **kwargs,
         )
+        # print(response)
         if isinstance(response.json(), list):
             return [Status(**el) for el in response.json()]
         else:
             return Status(**response.json())
+
 
     @LOG()
     def upload_media(
@@ -486,10 +473,12 @@ class Client:
             The media uploaded as an object.
         """
         with open(src, "rb") as f:
-            files = {"file": (src.split("/")[-1], f, type_.value)}
+            files = {
+                "file": (src.split("/")[-1], f, type_.value)
+            }
 
             response = self._raw_request(
-                "/api/v1/media",
+                path=f"{apiversion1}/media",
                 method=RequestMethod.POST,
                 files=files,
                 data={
@@ -522,7 +511,7 @@ class Client:
         else:
             id_ = status
         response = self._raw_request(
-            f"/api/v1/statuses/{id_}",
+            path=f"{apiversion1}/statuses/{id_}",
             method=RequestMethod.DELETE,
             ratelimit_security=False,
             **kwargs,
@@ -541,8 +530,8 @@ class Client:
             int: ...
         """
         response = self._raw_request(
-            add_url_parameters(
-                "/api/v1/notifications/unread_count", types=types, **kwargs
+            path=add_url_parameters(
+                f"{apiversion1}/notifications/unread_count", types=types, **kwargs
             ),
             method=RequestMethod.GET,
         )
@@ -574,8 +563,8 @@ class Client:
             ...
         """
         response = self._raw_request(
-            add_url_parameters(
-                "/api/v1/notifications",
+            path=add_url_parameters(
+                f"{apiversion1}/notifications",
                 limit=limit,
                 types=types,
                 min_id=min_id,
@@ -603,8 +592,8 @@ class Client:
             ...
         """
         response = self._raw_request(
-            add_url_parameters(
-                "/api/v1/markers", timeline=[t.value for t in timeline], **kwargs
+            path=add_url_parameters(
+                f"{apiversion1}/markers", timeline=[t.value for t in timeline], **kwargs
             ),
             method=RequestMethod.GET,
             **kwargs,
@@ -632,7 +621,7 @@ class Client:
             markers generated
         """
         response = self._raw_request(
-            "/api/v1/markers",
+            path=f"{apiversion1}/markers",
             method=RequestMethod.POST,
             additional_data=timelines,
             json_data=True,
@@ -768,7 +757,7 @@ c.run()
         Parameters
         ----------
         event : Event
-            The event witch will call it
+            The event witch will call it    
 
         Returns
         -------
@@ -796,7 +785,6 @@ c.run()
     def _on_start_(_, self) -> None: ...
     def _on_loop_step_(_, self, i: int) -> None: ...
     def _on_stop_(_, self) -> None: ...
-
     # def _on_request_(_, self, *args, **kwargs) -> Any: ...
 
     def execute(self, func: Callable) -> Callable:
@@ -821,19 +809,15 @@ c.run()
 
         e_name = "_" + func.__name__ + "_"
 
-        if getattr(self, e_name, None) is None or e_name not in (
-            "_on_start_",
-            "_on_loop_step_",
-            "_on_stop_",
-        ):
+        if getattr(self, e_name, None) is None or e_name not in ("_on_start_", "_on_loop_step_", "_on_stop_"):
             raise AttributeError("Event not known.")
         setattr(self, e_name, func)
 
         return func
-
-    # * Maybe one day it will be possible to modify reqests before they will be sent
+    
+    #* Maybe one day it will be possible to modify reqests before they will be sent
     # def __request_modifier__(func: Callable) -> Callable:
     #     def _wrapper(*args, **kwargs) -> Any:
     #         return func(**args, **kwargs)
-
+        
     #     return _wrapper

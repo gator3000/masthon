@@ -1,8 +1,8 @@
 from .__init__ import Client, __version__ as version, DEFAULT_MESSAGE
-
+# from masthon import Client, __version__ as version, DEFAULT_MESSAGE
 from time import asctime
 import sys
-
+import os
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == "-v":
@@ -14,11 +14,14 @@ if __name__ == "__main__":
             print(f"Current version : '{version}'")
             sys.exit(0)
     print("Hello World ! Let's start with posting a simple message.")
-    server = input("What's your instance (like `https://mastodon.social`) : ")
-    token = input("What's your account token : ")
+    # server = input("What's your instance (like `https://mastodon.social`) : ")
+    #token = input("What's your account token :")
+
+    server= str(os.environ.get('SERVER'))
+    token = os.environ.get('TOKEN_ACCESS')
 
     client = Client(token=token, server=server)
-
+    
     @client.schedule()
     def on_starting(local_client: Client) -> None:
         s = local_client.post_status(DEFAULT_MESSAGE.format(asctime()))
