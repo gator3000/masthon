@@ -7,4 +7,10 @@ last_graph.*
 .mypy_cache/
 chv.sh
 venv/
+.venv/
 *.env
+.activate
+.mypy.ini
+DEBUG.json
+logs.log
+.stubs
