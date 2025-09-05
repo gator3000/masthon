@@ -82,9 +82,9 @@ def clean(client: Client):
     for post in reversed(posts):
         try:
             client.delete_status(post)
-            sleep(.5)
+            sleep(0.5)
         except Exceptions.HTTPRateLimit:
-            sleep(30*60)
+            sleep(30 * 60)
             client.delete_status(post)
     client.stop()  # Artificially stop the loop
 

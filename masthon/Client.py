@@ -20,9 +20,13 @@ import traceback
 
 TOKEN_FORMAT: re.Pattern = re.compile(r"^[A-Za-z0-9\-_]{43}$")
 # SERVER_FORMAT: re.Pattern = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$")
-SERVER_FORMAT: re.Pattern = re.compile( r"^https?://([a-zA-Z0-9-]{1,61}\.)+[a-zA-Z]{2,}(/api/v[0-9]+)?/?$") #pour ajouter api/v1
-apiversion1="/api/v1"
-apiversion2="/api/v2"
+SERVER_FORMAT: re.Pattern = re.compile(
+    r"^https?://([a-zA-Z0-9-]{1,61}\.)+[a-zA-Z]{2,}(/api/v[0-9]+)?/?$"
+)  # pour ajouter api/v1
+apiversion1 = "/api/v1"
+apiversion2 = "/api/v2"
+
+
 class Client:
     """
     A class representing your application.
@@ -59,7 +63,9 @@ class Client:
             raise TypeError(
                 f"Server type `{type(server)}` not supported must be a str."
             )
-        if not SERVER_FORMAT.match(server): # changer pour adapter a https://vzhbh/api/v1
+        if not SERVER_FORMAT.match(
+            server
+        ):  # changer pour adapter a https://vzhbh/api/v1
             raise ValueError("Server url doesn't match the format.")
         if not server.startswith("https://") and not server.startswith("http://"):
             server = "https://" + server
@@ -101,7 +107,9 @@ class Client:
         self.cli_last_error: Optional[Exception] = None
 
         if not (0 <= async_level <= 2):
-            print("\033[1m\033[91m[WARN]\033[93m Async level unknown >\033[0m default set to 0") 
+            print(
+                "\033[1m\033[91m[WARN]\033[93m Async level unknown >\033[0m default set to 0"
+            )
             async_level = 0
         self._async_level = async_level
 
@@ -128,17 +136,19 @@ class Client:
         # Checks
         if not isinstance(self.epoch, float):
             raise MasthonException("Loop not started, impossible to execute one step.")
-        
+
         # process list initialisation
         match self._async_level:
             case 0:
-                pass # not used
+                pass  # not used
             case 1:
-                self.process.clear() # cleared because all process down
+                self.process.clear()  # cleared because all process down
             case 2:
                 for i, p in enumerate(self.process):
                     if not p.is_alive():
-                        del self.process[i] # juste delete process down and let other run
+                        del self.process[
+                            i
+                        ]  # juste delete process down and let other run
         self.process = list()
 
         # Sheduled functions (executed one time)
@@ -210,10 +220,14 @@ class Client:
                         case 0:
                             func(self, out.data)
                         case 1:
-                            self.process.append(tg.Thread(target=func, args=(self, out.data)))
+                            self.process.append(
+                                tg.Thread(target=func, args=(self, out.data))
+                            )
                             self.process[-1].start()
                         case 2:
-                            self.process.append(tg.Thread(target=func, args=(self, out.data)))
+                            self.process.append(
+                                tg.Thread(target=func, args=(self, out.data))
+                            )
                             self.process[-1].start()
 
     def run(self) -> None:
@@ -256,9 +270,17 @@ class Client:
 
     @TRY(HTTPError)
     @LOG(True, True, args_max_lenght=64)
-
-    def _raw_request(self,path: str, method: RequestMethod, annonymous: Optional[bool] = False,files: Optional[Dict[str, Tuple[str, IO, str]]] = None, additional_data: Dict[str, str] = {},
-        json_data: bool = False, ratelimit_security: bool = True,**kwargs: Dict[str, str] ) -> requests.Response:
+    def _raw_request(
+        self,
+        path: str,
+        method: RequestMethod,
+        annonymous: Optional[bool] = False,
+        files: Optional[Dict[str, Tuple[str, IO, str]]] = None,
+        additional_data: Dict[str, str] = {},
+        json_data: bool = False,
+        ratelimit_security: bool = True,
+        **kwargs: Dict[str, str],
+    ) -> requests.Response:
         """Make a request to the API.
 
         Args:
@@ -290,11 +312,12 @@ class Client:
             response = requests.request(
                 method.value.upper(), url, headers=auth, files=files, json=data
             )
-        self.check_statuscode(response,ratelimit_security)
+        self.check_statuscode(response, ratelimit_security)
 
         return response
-    @LOG()    
-    def check_statuscode(self,response, ratelimit_security: bool = True):
+
+    @LOG()
+    def check_statuscode(self, response, ratelimit_security: bool = True):
         try:
             error_msg = response.json().get("error", "Unknown error")
         except ValueError:
@@ -323,7 +346,8 @@ class Client:
                     response.status_code,
                 )
             case _:
-                pass # a changer pour et ajouter case pour erreur type 300 (redirection),200(success),100(informationnel)
+                pass  # a changer pour et ajouter case pour erreur type 300 (redirection),200(success),100(informationnel)
+
     @LOG()
     def post_status(
         self,
@@ -353,7 +377,6 @@ class Client:
             for media_src in medias:
                 ids.append(str(self.upload_media(media_src).id))
 
-        
         response = self._raw_request(
             path=f"{apiversion1}/statuses",
             method=RequestMethod.POST,
@@ -370,8 +393,6 @@ class Client:
             return [Status(**el) for el in response.json()]
         else:
             return Status(**response.json())
-
-
 
     @LOG()
     def upload_media(
@@ -439,9 +460,7 @@ class Client:
             int: ...
         """
         response = self._raw_request(
-            add_url_parameters(
-                "/notifications/unread_count", types=types, **kwargs
-            ),
+            add_url_parameters("/notifications/unread_count", types=types, **kwargs),
             method=RequestMethod.GET,
         )
         return int(response.json()["count"])
@@ -484,7 +503,7 @@ class Client:
 
         Args:
             timeline (Iterable[TimelineType]): ...
-        
+
         Returns:
             Dict[TimelineType, Marker]: ....
         """
@@ -510,7 +529,7 @@ class Client:
             timeline (Iterable[TimelineType]):
                 Example:
                 {TimelineType.NOTIFICATIONS.value: {"last_read_id": notification.id}}
-        
+
         Returns:
             Dict[TimelineType, Marker]: markers generated
         """
@@ -525,21 +544,21 @@ class Client:
             convert_to_enum(t, TimelineType): Marker(**el)
             for t, el in response.json().items()
         }
-        
+
     @LOG()
-    def Token_access(self,clientid :str,clientsecret:str,code: str)-> str:
-        "permet de récuperer le token d'access "
+    def Token_access(self, clientid: str, clientsecret: str, code: str) -> str:
+        "permet de récuperer le token d'access"
         try:
-            url="/oauth/token"
+            url = "/oauth/token"
             data = {
                 "client_id": clientid,
                 "client_secret": clientsecret,
                 "grant_type": "authorization_code",
                 "code": code,
-                "redirect_uri": "urn:ietf:wg:oauth:2.0:oob"
+                "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
             }
-            response=self._raw_request(path=url,method=RequestMethod.POST,data=data)
-            token= response.json().get("access_token")
+            response = self._raw_request(path=url, method=RequestMethod.POST, data=data)
+            token = response.json().get("access_token")
             return token
         except Exception as e:
             print(e)

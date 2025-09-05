@@ -127,12 +127,16 @@ def APIDATACLASS(cls):
                         elif DATE_ in annn.__args__:
                             set_attr(self, attr, date_factory)
                         elif OBJECT_ in annn.__args__:
-                            set_attr(self, attr, custom_object_factory, annn.__args__[1])
+                            set_attr(
+                                self, attr, custom_object_factory, annn.__args__[1]
+                            )
                     elif (
                         isinstance(annn, type(Union[int, str]))
                         and annn.__args__[1] is not types.NoneType
                         and isinstance(annn.__args__[0], type(List[int]))
-                        and isinstance(annn.__args__[0].__args__[0], type(Union[int, str]))
+                        and isinstance(
+                            annn.__args__[0].__args__[0], type(Union[int, str])
+                        )
                     ):
                         if ENUM_ in annn.__args__[0].__args__[0].__args__:
                             set_attr(
@@ -166,7 +170,11 @@ def APIDATACLASS(cls):
                                 annn.__args__[0].__args__[1],
                             )
                 except Exception as e:
-                    raise DataClassException(" ".join((f"Attribute: {attr}, Annotation: {annn}  |>\n" , *e.args)))
+                    raise DataClassException(
+                        " ".join(
+                            (f"Attribute: {attr}, Annotation: {annn}  |>\n", *e.args)
+                        )
+                    )
 
         def __repr__(self):
             return (
@@ -291,8 +299,8 @@ class WarningAction(Enum):
     SUSPEND = "suspend"
 
 
+# DATACLASSES
 
-#DATACLASSES
 
 @APIDATACLASS
 @dataclass(order=True)
