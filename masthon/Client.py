@@ -527,7 +527,7 @@ class Client:
         }
         
     @LOG()
-    def Token_access(self,clientid :str,clientsecret:str,code: str)-> token:str:
+    def Token_access(self,clientid :str,clientsecret:str,code: str)-> str:
         "permet de récuperer le token d'access"
         try:
             url="/oauth/token"
