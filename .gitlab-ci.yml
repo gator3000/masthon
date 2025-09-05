@@ -16,7 +16,18 @@ pylint:
     - when: always  # Lance le job à chaque push, sur toutes les branches
   allow_failure: true
 
-
+safety:
+  image: python:3.11
+  stage: security
+  script:
+    - pip install safety
+    - pip freeze > requirements.txt
+    - safety check --file=requirements.txt --full-report --exit-code 1
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "main"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  allow_failure: false
+  
 bandit:
   image: python:3.11
   stage: security

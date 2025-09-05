@@ -116,8 +116,6 @@ def TRY(catched: Type[BaseException] = BaseException) -> Callable:
                 if len(exc.args) >= 3:
                     return exc.args[2]
                 raise exc
-            except Exception as e:
-                raise e
             return return_
 
         return _wrapper
