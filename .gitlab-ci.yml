@@ -14,11 +14,11 @@ black:
   - black .
   - git config --global user.name "CI Formatter"
   - git config --global user.email "ci@example.com"  
-  - git checkout $CI_COMMIT_BRANCH
+  - git checkout -b "$CI_COMMIT_BRANCH"
   - git add .
   - git diff --cached --quiet || git commit -m "Auto-format with Black"
   - git remote set-url origin https://gitlab-ci-token:${COMMIT_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
-  - git push origin $CI_COMMIT_BRANCH
+  - git push origin "$CI_COMMIT_BRANCH"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
     - when: always

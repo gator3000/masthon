@@ -423,7 +423,8 @@ class Client:
             )
 
         attachement = MediaAttachment(**response.json())
-        assert attachement.type != "unknown", UnexpectedServerResult()
+        if attachement.type == "unknown":
+            raise UnexpectedServerResult()
         return attachement
 
     @LOG()
