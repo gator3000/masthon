@@ -541,7 +541,7 @@ class Client:
             response=self._raw_request(path=url,method=RequestMethod.POST,data=data)
             token= response.json().get("access_token")
             return token
-        except as e:
+        except Exception as e:
             print(e)
 
     # Commands
