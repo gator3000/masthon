@@ -8,14 +8,13 @@ from typing import (
     Dict,
     Any,
     Union,
-    Iterable,
     TypeAlias,
     TypeVar,
     Type,
     TYPE_CHECKING,
 )
 import types
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, EnumType
 from datetime import datetime
 
@@ -652,6 +651,7 @@ class Status:
     pinned: Optional[bool] = None
     filtered: Optional[List[API_OBJECT[FilterResult]]] = None
     quote: Optional[API_OBJECT[Quote | ShallowQuote]] = None
+    quote_count: Optional[int] = None #! Temporary fix, mastodon docs doesn't talk about this
 
     def __post_init__(self):
         super().__post_init__()
