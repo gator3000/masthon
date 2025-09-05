@@ -227,6 +227,7 @@ class Client:
                     self.process.append(tg.Thread(target=self._event_handling))
                     self.process[-1].start()
 
+        # CLI
         match self._async_level:
             case 0:
                 self._cli_handling()
@@ -245,17 +246,17 @@ class Client:
                 # Join all process
                 for p in self.process:
                     p.join()
-                for i, p in enumerate(self.cli_process):
+                for j, p in enumerate(self.cli_process):
                     if not p.is_alive():
                         if isinstance(p.exception, BaseException):
                             raise p.exception
-                        del self.cli_process[i]
+                        del self.cli_process[j]
             case 2:
-                for i, p in enumerate(self.cli_process):
+                for j, p in enumerate(self.cli_process):
                     if not p.is_alive():
                         if isinstance(p.exception, BaseException):
                             raise p.exception
-                        del self.cli_process[i]
+                        del self.cli_process[j]
 
     def _cli_handling(self):
         u_input = get_user_input()
@@ -273,10 +274,7 @@ class Client:
                     self.cli_last_error = e
                     if isinstance(e, RealException):
                         raise e.args[0] from e.args[0]
-                    raise CommandExecutionError(
-                        f"An exception as occured while executing the command named `{cmd}`.",
-                        e,
-                    )
+                    raise CommandExecutionError(f"An exception as occured while executing the command named `{cmd}`.") from e
             except CLIException as e:
                 logger.error(
                     f"{e.__module__}.{e.__class__.__name__}: {" ".join([repr(a) for a in e.args])}"
