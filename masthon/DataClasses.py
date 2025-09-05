@@ -190,13 +190,14 @@ def APIDATACLASS(cls):
 
 
 # Enums
-class On(Enum): # not really used but I keep the idea
+class On(Enum):  # not really used but I keep the idea
     START = "start"
     STOP = "stop"
     LOOP_STEP = "loop_step"
     REQUEST = "request"
     CHECK_EVENT = "check_event"
     POST_STATUS = "post_status"
+
 
 class RequestMethod(Enum):
     GET = "get"
@@ -659,7 +660,9 @@ class Status:
     pinned: Optional[bool] = None
     filtered: Optional[List[API_OBJECT[FilterResult]]] = None
     quote: Optional[API_OBJECT[Quote | ShallowQuote]] = None
-    quotes_count: Optional[int] = None #! Temporary fix, mastodon docs doesn't talk about this
+    quotes_count: Optional[int] = (
+        None  #! Temporary fix, mastodon docs doesn't talk about this
+    )
 
     def __post_init__(self):
         super().__post_init__()

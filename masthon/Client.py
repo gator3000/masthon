@@ -20,7 +20,10 @@ import traceback
 
 
 TOKEN_FORMAT: re.Pattern = re.compile(r"^[A-Za-z0-9\-_]{43}$")
-SERVER_FORMAT: re.Pattern = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$")
+SERVER_FORMAT: re.Pattern = re.compile(
+    r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$"
+)
+# SERVER_FORMAT: re.Pattern = re.compile( r"^https?://([a-zA-Z0-9-]{1,61}\.)+[a-zA-Z]{2,}(/api/v[0-9]+)?/?$") #pour ajouter api/v1
 apiversion1 = "/api/v1"
 apiversion2 = "/api/v2"
 
@@ -390,8 +393,8 @@ class Client:
         self.check_statuscode(response, ratelimit_security)
 
         return response
-    @LOG()    
-    def check_statuscode(self,response, ratelimit_security: bool = True):
+
+    def check_statuscode(self, response, ratelimit_security: bool = True):
         try:
             error_msg = response.json().get("error", "Unknown error")
         except ValueError:
@@ -477,7 +480,6 @@ class Client:
             return [Status(**el) for el in response.json()]
         else:
             return Status(**response.json())
-
 
     @LOG()
     def upload_media(

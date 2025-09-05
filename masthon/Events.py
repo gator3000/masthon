@@ -46,20 +46,24 @@ class Listeners:
                 return ListenerOutput(EventStatus.ERROR, json.loads(e.args[2]))
             else:
                 return ListenerOutput(EventStatus.ERROR, {"error": "unknow"})
-
-        return ListenerOutput(
-            status=EventStatus.TRIGGERED if number > 0 else EventStatus.NONE,
-            data={
-                "count": number,
-                "notifications": notifications,
-                "notification": notifications[-1] if len(notifications) > 0 else None,
-            },
-        )
+        else:
+            return ListenerOutput(
+                status=EventStatus.TRIGGERED if number > 0 else EventStatus.NONE,
+                data={
+                    "count": number,
+                    "notifications": notifications,
+                    "notification": (
+                        notifications[-1] if len(notifications) > 0 else None
+                    ),
+                },
+            )
 
     def listen_mention(self) -> ListenerOutput:
         try:
             number: int = self.client.unread_notifications_count(
+                
                 types=[NotificationType.MENTION]
+            
             )
             notifications: List[Notification] = []
             if number > 0:
@@ -79,12 +83,14 @@ class Listeners:
                 return ListenerOutput(EventStatus.ERROR, json.loads(e.args[2]))
             else:
                 return ListenerOutput(EventStatus.ERROR, {"error": "unknow"})
-
-        return ListenerOutput(
-            status=EventStatus.TRIGGERED if number > 0 else EventStatus.NONE,
-            data={
-                "count": number,
-                "notifications": notifications,
-                "notification": notifications[-1] if len(notifications) > 0 else None,
-            },
-        )
+        else:
+            return ListenerOutput(
+                status=EventStatus.TRIGGERED if number > 0 else EventStatus.NONE,
+                data={
+                    "count": number,
+                    "notifications": notifications,
+                    "notification": (
+                        notifications[-1] if len(notifications) > 0 else None
+                    ),
+                },
+            )

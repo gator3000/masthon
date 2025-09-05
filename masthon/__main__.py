@@ -22,11 +22,8 @@ if __name__ == "__main__":
     server = str(os.environ.get("SERVER"))
     token = os.environ.get("TOKEN_ACCESS")
 
-    server= str(os.environ.get('SERVER'))
-    token = os.environ.get('TOKEN_ACCESS')
-
     client = Client(token=token, server=server)
-    
+
     @client.schedule()
     def on_starting(local_client: Client) -> None:
         s = local_client.post_status(DEFAULT_MESSAGE.format(asctime()))
