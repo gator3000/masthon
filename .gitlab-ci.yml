@@ -22,7 +22,7 @@ safety:
   script:
     - pip install safety
     - pip freeze > requirements.txt
-    - safety check --file=requirements.txt --full-report --exit-code-on-vuln
+    - safety check --file=requirements.txt --full-report --exit-code
   rules:
     - if: '$CI_COMMIT_BRANCH != "main"'
     - if: '$CI_COMMIT_BRANCH == "main"'
