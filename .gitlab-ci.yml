@@ -23,6 +23,7 @@ safety:
     - pip install safety
     - pip freeze > requirements.txt
     - safety check --file=requirements.txt --full-report --exit-code-on-vuln
+  rules:
     - if: '$CI_COMMIT_BRANCH != "main"'
     - if: '$CI_COMMIT_BRANCH == "main"'
   allow_failure: false
@@ -36,11 +37,12 @@ bandit:
   rules:
     - if: '$CI_COMMIT_BRANCH != "main"'  # À chaque push sur les branches autres que main
     - if: '$CI_COMMIT_BRANCH == "main"'  # Et aussi sur main après merge
-  allow_failure: False
+  allow_failure: false
 
-image: alpine:latest
+
 
 create-pages:
+  image: alpine:latest
   stage: deploy
   pages:
     # The folder that contains the files to be exposed at the Page URL
