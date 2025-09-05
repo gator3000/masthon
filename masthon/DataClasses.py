@@ -127,12 +127,16 @@ def APIDATACLASS(cls):
                         elif DATE_ in annn.__args__:
                             set_attr(self, attr, date_factory)
                         elif OBJECT_ in annn.__args__:
-                            set_attr(self, attr, custom_object_factory, annn.__args__[1])
+                            set_attr(
+                                self, attr, custom_object_factory, annn.__args__[1]
+                            )
                     elif (
                         isinstance(annn, type(Union[int, str]))
                         and annn.__args__[1] is not types.NoneType
                         and isinstance(annn.__args__[0], type(List[int]))
-                        and isinstance(annn.__args__[0].__args__[0], type(Union[int, str]))
+                        and isinstance(
+                            annn.__args__[0].__args__[0], type(Union[int, str])
+                        )
                     ):
                         if ENUM_ in annn.__args__[0].__args__[0].__args__:
                             set_attr(
@@ -166,7 +170,11 @@ def APIDATACLASS(cls):
                                 annn.__args__[0].__args__[1],
                             )
                 except Exception as e:
-                    raise DataClassException(" ".join((f"Attribute: {attr}, Annotation: {annn}  |>\n" , *e.args)))
+                    raise DataClassException(
+                        " ".join(
+                            (f"Attribute: {attr}, Annotation: {annn}  |>\n", *e.args)
+                        )
+                    )
 
         def __repr__(self):
             return (
@@ -182,13 +190,14 @@ def APIDATACLASS(cls):
 
 
 # Enums
-class On(Enum): # not really used but I keep the idea
+class On(Enum):  # not really used but I keep the idea
     START = "start"
     STOP = "stop"
     LOOP_STEP = "loop_step"
     REQUEST = "request"
     CHECK_EVENT = "check_event"
     POST_STATUS = "post_status"
+
 
 class RequestMethod(Enum):
     GET = "get"
@@ -300,8 +309,8 @@ class WarningAction(Enum):
     SUSPEND = "suspend"
 
 
+# DATACLASSES
 
-#DATACLASSES
 
 @APIDATACLASS
 @dataclass(order=True)
@@ -651,7 +660,9 @@ class Status:
     pinned: Optional[bool] = None
     filtered: Optional[List[API_OBJECT[FilterResult]]] = None
     quote: Optional[API_OBJECT[Quote | ShallowQuote]] = None
-    quotes_count: Optional[int] = None #! Temporary fix, mastodon docs doesn't talk about this
+    quotes_count: Optional[int] = (
+        None  #! Temporary fix, mastodon docs doesn't talk about this
+    )
 
     def __post_init__(self):
         super().__post_init__()

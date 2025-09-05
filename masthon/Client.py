@@ -19,10 +19,13 @@ import traceback
 
 
 TOKEN_FORMAT: re.Pattern = re.compile(r"^[A-Za-z0-9\-_]{43}$")
-SERVER_FORMAT: re.Pattern = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$")
+SERVER_FORMAT: re.Pattern = re.compile(
+    r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$"
+)
 # SERVER_FORMAT: re.Pattern = re.compile( r"^https?://([a-zA-Z0-9-]{1,61}\.)+[a-zA-Z]{2,}(/api/v[0-9]+)?/?$") #pour ajouter api/v1
-apiversion1="/api/v1"
-apiversion2="/api/v2"
+apiversion1 = "/api/v1"
+apiversion2 = "/api/v2"
+
 
 class Client:
     """
@@ -85,7 +88,9 @@ class Client:
             raise TypeError(
                 f"Server type `{type(server)}` not supported must be a str."
             )
-        if not SERVER_FORMAT.match(server): # changer pour adapter a https://vzhbh/api/v1
+        if not SERVER_FORMAT.match(
+            server
+        ):  # changer pour adapter a https://vzhbh/api/v1
             raise ValueError("Server url doesn't match the format.")
         if not server.startswith("https://") and not server.startswith("http://"):
             server = "https://" + server
@@ -361,11 +366,11 @@ class Client:
             response = requests.request(
                 method.value.upper(), url, headers=auth, files=files, json=data
             )
-        self.check_statuscode(response,ratelimit_security)
+        self.check_statuscode(response, ratelimit_security)
 
         return response
-    
-    def check_statuscode(self,response, ratelimit_security: bool = True):
+
+    def check_statuscode(self, response, ratelimit_security: bool = True):
         try:
             error_msg = response.json().get("error", "Unknown error")
         except ValueError:
@@ -394,7 +399,8 @@ class Client:
                     response.status_code,
                 )
             case _:
-                pass # a changer pour et ajouter case pour erreur type 300 (redirection),200(success),100(informationnel)
+                pass  # a changer pour et ajouter case pour erreur type 300 (redirection),200(success),100(informationnel)
+
     @LOG()
     def post_status(
         self,
@@ -434,7 +440,6 @@ class Client:
             for media_src in medias:
                 ids.append(str(self.upload_media(media_src).id))
 
-        
         response = self._raw_request(
             path=f"{apiversion1}/statuses",
             method=RequestMethod.POST,
@@ -451,7 +456,6 @@ class Client:
             return [Status(**el) for el in response.json()]
         else:
             return Status(**response.json())
-
 
     @LOG()
     def upload_media(
@@ -473,9 +477,7 @@ class Client:
             The media uploaded as an object.
         """
         with open(src, "rb") as f:
-            files = {
-                "file": (src.split("/")[-1], f, type_.value)
-            }
+            files = {"file": (src.split("/")[-1], f, type_.value)}
 
             response = self._raw_request(
                 path=f"{apiversion1}/media",
@@ -757,7 +759,7 @@ c.run()
         Parameters
         ----------
         event : Event
-            The event witch will call it    
+            The event witch will call it
 
         Returns
         -------
@@ -785,6 +787,7 @@ c.run()
     def _on_start_(_, self) -> None: ...
     def _on_loop_step_(_, self, i: int) -> None: ...
     def _on_stop_(_, self) -> None: ...
+
     # def _on_request_(_, self, *args, **kwargs) -> Any: ...
 
     def execute(self, func: Callable) -> Callable:
@@ -809,15 +812,19 @@ c.run()
 
         e_name = "_" + func.__name__ + "_"
 
-        if getattr(self, e_name, None) is None or e_name not in ("_on_start_", "_on_loop_step_", "_on_stop_"):
+        if getattr(self, e_name, None) is None or e_name not in (
+            "_on_start_",
+            "_on_loop_step_",
+            "_on_stop_",
+        ):
             raise AttributeError("Event not known.")
         setattr(self, e_name, func)
 
         return func
-    
-    #* Maybe one day it will be possible to modify reqests before they will be sent
+
+    # * Maybe one day it will be possible to modify reqests before they will be sent
     # def __request_modifier__(func: Callable) -> Callable:
     #     def _wrapper(*args, **kwargs) -> Any:
     #         return func(**args, **kwargs)
-        
+
     #     return _wrapper

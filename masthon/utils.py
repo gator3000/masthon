@@ -18,29 +18,28 @@ import sys, tty, termios, select
 DEBUG = False  # If debug is true errors are raised. Else they will be ignored (just printed).
 
 
-
 ###### Modified
 
+
 class ExceptionDesignedThread(Thread):
-    def __init__(self, target: Callable[..., Any], args:tuple = tuple(), kwargs:dict = dict()) -> None:
+    def __init__(
+        self, target: Callable[..., Any], args: tuple = tuple(), kwargs: dict = dict()
+    ) -> None:
         super().__init__()
         self._target = target
         self._args = args
         self._kwargs = kwargs
         self._exception = None
-    
+
     @property
     def exception(self):
         return self._exception
-    
+
     def run(self):
         try:
             self._target(*self._args, **self._kwargs)
         except BaseException as e:
             self._exception = e
-
-
-
 
 
 fd = sys.stdin.fileno()

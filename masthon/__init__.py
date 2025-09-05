@@ -11,4 +11,13 @@ Talk to me about my project at `@gator3000@mastodon.social` or on discord `_gato
 
 #mastodonAPI #masto #français #developpement #dev"""
 
-__all__ = ("__version__", "Client", "DataClasses", "Events", "Exceptions", "utils", "DEFAULT_MESSAGE", "logger")
+__all__ = (
+    "__version__",
+    "Client",
+    "DataClasses",
+    "Events",
+    "Exceptions",
+    "utils",
+    "DEFAULT_MESSAGE",
+    "logger",
+)
