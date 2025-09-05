@@ -20,7 +20,7 @@ black:
   - git remote set-url origin https://gitlab-ci-token:${COMMIT_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
   - git push origin $CI_COMMIT_BRANCH
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - when: always
 
 pylint:
   image: python:3.11
