@@ -1,3 +1,40 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "Masthon"
+version = "v0.5a"
+dependencies = [
+  "requests",
+  "logger @ git+https://gitlab.com/Gator3000/logger.git@main"
+]
+requires-python = ">=3.10"
+authors = [
+  {name = "Gator3000", email = "org.literie.gator@h3110.aleeas.com"},
+  {name = "Séphiroth"},
+]
+maintainers = []
+
+description = "A simple API for linking masthodon to your python codes."
+readme = "README.md"
+
+license = "GPL-3.0-only"
+license-files = ["LICEN[CS]E"]
+keywords = ["API", "mastodon"]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13"
+]
+
+
+[project.urls]
+Repository = "https://gitlab.com/Gator3000/masthon.git"
+Issues = "https://gitlab.com/Gator3000/masthon/-/issues"
+Documentation = "https://gator3000.gitlab.io/masthon/"

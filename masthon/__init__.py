@@ -1,6 +1,6 @@
-from .Client import Client
+from .Client import Client, logger
 
-__version__ = "v0.4b"
+__version__ = "v0.5dev"
 
 
 DEFAULT_MESSAGE = """Hello from the #API at time : `{}`.
@@ -11,4 +11,4 @@ Talk to me about my project at `@gator3000@mastodon.social` or on discord `_gato
 
 #mastodonAPI #masto #français #developpement #dev"""
 
-__all__ = ("__version__", "Client", "DataClasses", "Events", "Exceptions", "utils", "DEFAULT_MESSAGE")
+__all__ = ("__version__", "Client", "DataClasses", "Events", "Exceptions", "utils", "DEFAULT_MESSAGE", "logger")
