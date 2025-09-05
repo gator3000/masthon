@@ -40,7 +40,7 @@ safety:
     - pip freeze > requirements.txt
     - safety check --file=requirements.txt --full-report --exit-code
   rules:
-    -when: always
+    - when: always
   allow_failure: false
   
 bandit:
