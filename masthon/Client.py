@@ -20,10 +20,10 @@ import traceback
 
 
 TOKEN_FORMAT: re.Pattern = re.compile(r"^[A-Za-z0-9\-_]{43}$")
+# SERVER_FORMAT: re.Pattern = re.compile(r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$")
 SERVER_FORMAT: re.Pattern = re.compile(
-    r"^(http(s)?:\/\/)?([a-zA-Z0-9-]{1,61}\.){1,}[a-zA-Z]{2,}$"
-)
-# SERVER_FORMAT: re.Pattern = re.compile( r"^https?://([a-zA-Z0-9-]{1,61}\.)+[a-zA-Z]{2,}(/api/v[0-9]+)?/?$") #pour ajouter api/v1
+    r"^https?://([a-zA-Z0-9-]{1,61}\.)+[a-zA-Z]{2,}(/api/v[0-9]+)?/?$"
+)  # pour ajouter api/v1
 apiversion1 = "/api/v1"
 apiversion2 = "/api/v2"
 
@@ -481,7 +481,6 @@ class Client:
         else:
             return Status(**response.json())
 
-
     @LOG()
     def upload_media(
         self, src: str, *, type_: MediaType = MediaType.IMAGE, **kwargs
@@ -657,20 +656,21 @@ class Client:
             convert_to_enum(t, TimelineType): Marker(**el)
             for t, el in response.json().items()
         }
+
     @LOG()
-    def Token_access(self,clientid :str,clientsecret:str,code: str)-> token:str:
+    def Token_access(self, clientid: str, clientsecret: str, code: str) -> str:
         "permet de récuperer le token d'access"
         try:
-            url="/oauth/token"
+            url = "/oauth/token"
             data = {
                 "client_id": clientid,
                 "client_secret": clientsecret,
                 "grant_type": "authorization_code",
                 "code": code,
-                "redirect_uri": "urn:ietf:wg:oauth:2.0:oob"
+                "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
             }
-            response=self._raw_request(path=url,method=RequestMethod.POST,data=data)
-            token= response.json().get("access_token")
+            response = self._raw_request(path=url, method=RequestMethod.POST, data=data)
+            token = response.json().get("access_token")
             return token
         except as e:
             print(e)

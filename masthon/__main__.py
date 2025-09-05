@@ -2,6 +2,7 @@ from time import asctime
 import sys
 import os
 from .__init__ import Client, __version__ as version, DEFAULT_MESSAGE
+
 # from masthon import Client, __version__ as version, DEFAULT_MESSAGE
 
 if __name__ == "__main__":
@@ -21,11 +22,8 @@ if __name__ == "__main__":
     server = str(os.environ.get("SERVER"))
     token = os.environ.get("TOKEN_ACCESS")
 
-    server= str(os.environ.get('SERVER'))
-    token = os.environ.get('TOKEN_ACCESS')
-
     client = Client(token=token, server=server)
-    
+
     @client.schedule()
     def on_starting(local_client: Client) -> None:
         s = local_client.post_status(DEFAULT_MESSAGE.format(asctime()))

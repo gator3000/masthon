@@ -46,7 +46,7 @@ class Listeners:
                 return ListenerOutput(EventStatus.ERROR, json.loads(e.args[2]))
             else:
                 return ListenerOutput(EventStatus.ERROR, {"error": "unknow"})
-        
+
         return ListenerOutput(
                 status=EventStatus.TRIGGERED if number > 0 else EventStatus.NONE,
                 data={
