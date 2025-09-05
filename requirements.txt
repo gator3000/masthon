@@ -1,15 +1,19 @@
+astroid==3.3.11
 certifi==2025.8.3
 charset-normalizer==3.4.3
 dataclasses==0.6
 DateTime==5.5
+dill==0.4.0
 idna==3.10
-logger @ git+https://gitlab.com/Gator3000/logger.git
-mypy==1.17.1
-mypy_extensions==1.1.0
+isort==6.0.1
+logger @ git+https://gitlab.com/gator3000/logger.git
+mccabe==0.7.0
 pathspec==0.12.1
+platformdirs==4.3.8
 pytz==2025.2
 requests==2.32.4
 setuptools==80.9.0
+tomlkit==0.13.3
 types-requests==2.32.4.20250809
 typing==3.7.4.3
 typing_extensions==4.14.1
