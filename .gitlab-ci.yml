@@ -1,4 +1,3 @@
-# The Docker image that will be used to build your app
 image: python:3.11  # Utilisé par défaut pour les jobs sauf create-pages
 
 stages:
@@ -10,20 +9,24 @@ black:
   image: python:3.11
   stage: lint
   script:
-  - pip install black
-  - black .
-  - git config --global user.name "CI Formatter"
-  - git config --global user.email "ci@example.com"  
-  - |
-    if [ -n "$CI_COMMIT_BRANCH" ]; then
-      git checkout -b "$CI_COMMIT_BRANCH"
-    else
-      echo "CI_COMMIT_BRANCH is empty. Skipping branch creation."
-    fi
-  - git add .
-  - git diff --cached --quiet || git commit -m "Auto-format with Black"
-  - git remote set-url origin https://gitlab-ci-token:${COMMIT_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
-  - git push origin "$CI_COMMIT_BRANCH"
+    - pip install black
+    - black . > black.log
+    - git config --global user.name "CI Formatter"
+    - git config --global user.email "ci@example.com"  
+    - |
+      if [ -n "$CI_COMMIT_BRANCH" ]; then
+        git checkout -b "$CI_COMMIT_BRANCH"
+      else
+        echo "CI_COMMIT_BRANCH is empty. Skipping branch creation."
+      fi
+    - git add .
+    - git diff --cached --quiet || git commit -m "Auto-format with Black"
+    - git remote set-url origin https://gitlab-ci-token:${COMMIT_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
+    - git push origin "$CI_COMMIT_BRANCH"
+  artifacts:
+    paths:
+      - black.log
+    expire_in: 1 days
   rules:
     - if: '$CI_COMMIT_BRANCH'
       when: always
@@ -33,9 +36,13 @@ pylint:
   stage: lint
   script:
     - pip install pylint
-    - pylint masthon/ --fail-under=7.0 --output-format=colorized
+    - pylint masthon/ --fail-under=7.0 --output-format=colorized > pylint.log
+  artifacts:
+    paths:
+      - pylint.log
+    expire_in: 30 days
   rules:
-    - when: always  # Lance le job à chaque push, sur toutes les branches
+    - when: always
   allow_failure: true
 
 safety:
@@ -44,36 +51,41 @@ safety:
   script:
     - pip install safety
     - pip freeze > requirements.txt
-    - safety check --file=requirements.txt --full-report --exit-code
+    - safety check --file=requirements.txt --full-report --exit-code > safety.log
+  artifacts:
+    paths:
+      - safety.log
+      - requirements.txt
+    expire_in: 30 days
   rules:
     - when: always
   allow_failure: false
-  
+
 bandit:
   image: python:3.11
   stage: security
   script:
     - pip install bandit
-    - bandit -r masthon/ --exclude venv
+    - bandit -r masthon/ --exclude venv -f json -o bandit-report.json
+  artifacts:
+    paths:
+      - bandit-report.json
+    expire_in: 30 days
   rules:
-    - if: '$CI_COMMIT_BRANCH != "main"'  # À chaque push sur les branches autres que main
-    - if: '$CI_COMMIT_BRANCH == "main"'  # Et aussi sur main après merge
+    - if: '$CI_COMMIT_BRANCH != "main"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
   allow_failure: false
-
-
 
 create-pages:
   image: alpine:latest
   stage: deploy
   pages:
-    # The folder that contains the files to be exposed at the Page URL
     publish: docs/web_static
   rules:
-    # This ensures that only pushes to the default branch will trigger
-    # a pages deploy
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   artifacts:
     paths:
       - docs/web_static
+    expire_in: 30 days
   script:
     - echo "nothing to do"
