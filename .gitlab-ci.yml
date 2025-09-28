@@ -10,7 +10,7 @@ black:
   stage: lint
   script:
     - pip install black
-    - black . > black.log
+    - black .
     - git config --global user.name "CI Formatter"
     - git config --global user.email "ci@example.com"  
     - |
@@ -23,10 +23,7 @@ black:
     - git diff --cached --quiet || git commit -m "Auto-format with Black"
     - git remote set-url origin https://gitlab-ci-token:${COMMIT_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
     - git push origin "$CI_COMMIT_BRANCH"
-  artifacts:
-    paths:
-      - black.log
-    expire_in: 1 days
+
   rules:
     - if: '$CI_COMMIT_BRANCH'
       when: always
@@ -37,10 +34,6 @@ pylint:
   script:
     - pip install pylint
     - pylint masthon/ --fail-under=7.0 --output-format=colorized > pylint.log
-  artifacts:
-    paths:
-      - pylint.log
-    expire_in: 30 days
   rules:
     - when: always
   allow_failure: true
@@ -52,11 +45,6 @@ safety:
     - pip install safety
     - pip freeze > requirements.txt
     - safety check --file=requirements.txt --full-report --exit-code > safety.log
-  artifacts:
-    paths:
-      - safety.log
-      - requirements.txt
-    expire_in: 30 days
   rules:
     - when: always
   allow_failure: false
@@ -67,10 +55,7 @@ bandit:
   script:
     - pip install bandit
     - bandit -r masthon/ --exclude venv -f json -o bandit-report.json
-  artifacts:
-    paths:
-      - bandit-report.json
-    expire_in: 30 days
+
   rules:
     - if: '$CI_COMMIT_BRANCH != "main"'
     - if: '$CI_COMMIT_BRANCH == "main"'
