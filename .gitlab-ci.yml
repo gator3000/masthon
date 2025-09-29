@@ -3,6 +3,7 @@ image: python:3.11  # Utilisé par défaut pour les jobs sauf create-pages
 stages:
   - lint
   - security
+  - cleanning
   - deploy
 
 black:
@@ -60,6 +61,15 @@ bandit:
     - if: '$CI_COMMIT_BRANCH != "main"'
     - if: '$CI_COMMIT_BRANCH == "main"'
   allow_failure: false
+
+cleanpipeline:
+  script:
+    - apt-get update && apt-get install -y curl jq
+    - bash cleanpipeline.sh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - when: never
 
 create-pages:
   image: alpine:latest
