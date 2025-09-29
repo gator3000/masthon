@@ -62,6 +62,7 @@ bandit:
   allow_failure: false
 
 cleanpipeline:
+  stage: cleanning
   script:
     - apt-get update && apt-get install -y curl jq
     - bash cleanpipeline.sh
