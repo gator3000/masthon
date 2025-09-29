@@ -14,7 +14,6 @@ black:
     - black .
     - git config --global user.name "CI Formatter"
     - git config --global user.email "ci@example.com"  
-    - |
       if [ -n "$CI_COMMIT_BRANCH" ]; then
         git checkout -b "$CI_COMMIT_BRANCH"
       else
