@@ -1,17 +1,25 @@
-# The Docker image that will be used to build your app
+# You can override the included template(s) by including variable overrides
+# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Secret Detection customization: https://docs.gitlab.com/user/application_security/secret_detection/pipeline/configure
+# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
+# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 image: alpine:latest
 create-pages:
   stage: deploy
   pages:
-    # The folder that contains the files to be exposed at the Page URL
     publish: docs/web_static
   rules:
-    # This ensures that only pushes to the default branch will trigger
-    # a pages deploy
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  # Functions that should be executed before the build script is run
+  - if: "$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH"
   artifacts:
     paths:
-      - docs/web_static
+    - docs/web_static
   script:
-    - echo "nothing to do"
+  - echo "nothing to do"
+stages:
+- test
+sast:
+  stage: test
+include:
+- template: Security/SAST.gitlab-ci.yml
