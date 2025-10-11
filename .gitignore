@@ -2,15 +2,14 @@ __pycache__/
 test[0-9].*
 debug.py
 last_graph.*
-.obsidian/
 .vscode/
 .mypy_cache/
-chv.sh
 venv/
 .venv/
 *.env
 .activate
 .mypy.ini
 DEBUG.json
-logs.log
+*.log
 .stubs
+.obsidian

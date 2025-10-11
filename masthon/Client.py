@@ -304,7 +304,7 @@ class Client:
             self.RUNNING = False
 
     @TRY(HTTPError)
-    @LOG(True, True, args_max_lenght=64)
+    @LOG(True, True)
     def _raw_request(
         self,
         path: str,
