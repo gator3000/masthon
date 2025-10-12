@@ -660,8 +660,8 @@ class Status:
     pinned: Optional[bool] = None
     filtered: Optional[List[API_OBJECT[FilterResult]]] = None
     quote: Optional[API_OBJECT[Quote | ShallowQuote]] = None
-    quotes_count: Optional[int] = (
-        None  #! Temporary fix, mastodon docs doesn't talk about this
+    quotes_count: int = (
+        0  #! Temporary fix, see at https://docs.joinmastodon.org/entities/Status/#quotes_count
     )
 
     def __post_init__(self):
